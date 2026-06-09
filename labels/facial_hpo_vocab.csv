@@ -1,0 +1,101 @@
+hpo_id,hpo_name,feature_group,csv_column,expected_direction,confidence,gold_positive_images,absent_negative_images,attested
+HP:0000154,Wide mouth,MOUTH_WIDTH,mouth_width,1,HIGH,245,0,True
+HP:0000160,Narrow mouth,MOUTH_WIDTH,mouth_width,-1,HIGH,90,4,True
+HP:0000161,Median cleft upper lip,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,1,0,True
+HP:0000179,Thick lower lip vermilion,LIP_LOWER_VERMILION,lower_vermilion_height,1,HIGH,142,3,True
+HP:0000194,Open mouth,MOUTH_HEIGHT,mouth_opening,1,HIGH,59,0,True
+HP:0000202,Orofacial cleft,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,0,0,False
+HP:0000204,Cleft upper lip,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,0,0,False
+HP:0000207,Triangular mouth,MOUTH_SHAPE,mouth_triangularity,1,HIGH,10,0,True
+HP:0000215,Thick upper lip vermilion,LIP_UPPER_VERMILION,upper_vermilion_height,1,HIGH,21,0,True
+HP:0000219,Thin upper lip vermilion,LIP_UPPER_VERMILION,upper_vermilion_height,-1,HIGH,322,4,True
+HP:0000232,Everted lower lip vermilion,LIP_EVERSION,lower_lip_eversion,1,HIGH,84,0,True
+HP:0000233,Thin vermilion border,LIP_VERMILION_BORDER,vermilion_total,-1,HIGH,104,1,True
+HP:0000243,Trigonocephaly,HEAD_FRONTAL_TAPER,forehead_taper_ratio,-1,HIGH,6,0,True
+HP:0000272,Malar flattening,MALAR_FULLNESS,malar_bulge_mean,1,MEDIUM,54,4,True
+HP:0000275,Narrow face,FACE_ASPECT_RATIO,face_aspect_ratio,-1,HIGH,31,0,True
+HP:0000276,Long face,FACE_ASPECT_RATIO,face_aspect_ratio,-1,HIGH,136,0,True
+HP:0000283,Broad face,FACE_ASPECT_RATIO,face_aspect_ratio,1,HIGH,9,0,True
+HP:0000286,Epicanthus,EYE_EPICANTHUS,eye_epicanthus_angle_mean,-1,HIGH,136,7,True
+HP:0000289,Broad philtrum,PHILTRUM_WIDTH,philtrum_width,1,HIGH,92,0,True
+HP:0000293,Full cheeks,CHEEK_FULLNESS,cheek_area_mean,1,HIGH,91,2,True
+HP:0000294,Low anterior hairline,HAIRLINE_POSITION,hairline_height,-1,HIGH,132,7,True
+HP:0000307,Pointed chin,CHIN_SHAPE,chin_pointedness_angle,-1,HIGH,108,7,True
+HP:0000311,Round face,FACE_SHAPE,face_roundness,1,HIGH,19,0,True
+HP:0000316,Hypertelorism,EYE_INTER_PUPILLARY,inter_pupillary_distance,1,HIGH,313,8,True
+HP:0000321,Square face,FACE_SHAPE,face_width_uniformity,1,MEDIUM,19,0,True
+HP:0000322,Short philtrum,PHILTRUM_LENGTH,philtrum_length,-1,HIGH,141,4,True
+HP:0000324,Facial asymmetry,FACE_ASYMMETRY,face_asymmetry,1,HIGH,21,0,True
+HP:0000325,Triangular face,FACE_SHAPE,face_triangularity,1,HIGH,228,0,True
+HP:0000327,Hypoplasia of the maxilla,MIDFACE_WIDTH,midface_width,-1,HIGH,6,0,True
+HP:0000331,Short chin,CHIN_HEIGHT,chin_height,-1,HIGH,58,0,True
+HP:0000337,Broad forehead,FOREHEAD_WIDTH,forehead_width_upper,1,HIGH,83,0,True
+HP:0000341,Narrow forehead,FOREHEAD_WIDTH,forehead_width_upper,-1,HIGH,61,1,True
+HP:0000343,Long philtrum,PHILTRUM_LENGTH,philtrum_length,1,HIGH,323,4,True
+HP:0000347,Micrognathia,CHIN_HEIGHT,chin_height,-1,HIGH,164,13,True
+HP:0000348,High forehead,FOREHEAD_HEIGHT,forehead_height,1,HIGH,76,0,True
+HP:0000414,Bulbous nose,NOSE_TIP_SHAPE,nose_tip_to_bridge_ratio,1,HIGH,138,3,True
+HP:0000430,Underdeveloped nasal alae,NOSE_ALA_SHAPE,nose_ala_height_mean,-1,HIGH,55,2,True
+HP:0000431,Wide nasal bridge,NOSE_BRIDGE_WIDTH,nose_bridge_width,1,HIGH,188,0,True
+HP:0000437,Depressed nasal tip,NOSE_NOSTRIL_TILT,nose_tip_elevation,-1,HIGH,37,0,True
+HP:0000445,Wide nose,NOSE_BASE_WIDTH,nose_base_width,1,HIGH,61,0,True
+HP:0000446,Narrow nasal bridge,NOSE_BRIDGE_WIDTH,nose_bridge_width,-1,HIGH,38,0,True
+HP:0000447,Pear-shaped nose,NOSE_TIP_SHAPE,nose_tip_to_bridge_ratio,1,HIGH,3,0,True
+HP:0000454,Flared nostrils,NOSE_NOSTRIL_TILT,ala_flare_angle,1,HIGH,45,0,True
+HP:0000455,Broad nasal tip,NOSE_TIP_WIDTH,nose_tip_width,1,HIGH,112,0,True
+HP:0000456,Bifid nasal tip,NOSE_TIP_SHAPE,nose_tip_midline_dent,1,HIGH,0,0,False
+HP:0000463,Anteverted nares,NOSE_NOSTRIL_TILT,nasolabial_angle,1,HIGH,330,2,True
+HP:0000486,Strabismus,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,HIGH,278,3,True
+HP:0000494,Downslanted palpebral fissures,EYE_FISSURE_SLANT,eye_fissure_slant_mean,-1,HIGH,315,3,True
+HP:0000506,Telecanthus,EYE_INTER_CANTHAL,canthal_to_pupillary_ratio,1,HIGH,38,0,True
+HP:0000508,Ptosis,EYE_UPPER_LID_POS,eye_upper_lid_to_iris_mean,-1,HIGH,183,5,True
+HP:0000537,Epicanthus inversus,EYE_EPICANTHUS,eye_epicanthus_angle_mean,-1,HIGH,3,0,True
+HP:0000565,Esotropia,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,MEDIUM,7,0,True
+HP:0000568,Microphthalmia,EYE_SIZE,eye_area_mean,-1,HIGH,3,0,True
+HP:0000574,Thick eyebrow,EB_THICKNESS,eb_thickness_mean,1,HIGH,223,3,True
+HP:0000577,Exotropia,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,MEDIUM,26,0,True
+HP:0000581,Blepharophimosis,EYE_FISSURE_LENGTH,eye_fissure_length_mean,-1,HIGH,28,0,True
+HP:0000582,Upslanted palpebral fissure,EYE_FISSURE_SLANT,eye_fissure_slant_mean,1,HIGH,90,3,True
+HP:0000601,Hypotelorism,EYE_INTER_PUPILLARY,inter_pupillary_distance,-1,HIGH,15,4,True
+HP:0000637,Long palpebral fissure,EYE_FISSURE_LENGTH,eye_fissure_length_mean,1,HIGH,97,0,True
+HP:0000664,Synophrys,EB_INTER_DISTANCE,eb_inter_distance,-1,HIGH,192,4,True
+HP:0001090,Abnormally large globe,EYE_SIZE,eye_area_mean,1,HIGH,3,0,True
+HP:0001488,Bilateral ptosis,EYE_UPPER_LID_POS,eye_upper_lid_to_iris_mean,-1,HIGH,17,0,True
+HP:0002000,Short columella,NOSE_COLUMELLA,columella_length,-1,HIGH,49,0,True
+HP:0002003,Large forehead,FOREHEAD_HEIGHT,forehead_height,1,HIGH,21,0,True
+HP:0002006,Tessier cleft,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,0,0,False
+HP:0002010,Narrow maxilla,MIDFACE_WIDTH,midface_width,-1,HIGH,0,0,False
+HP:0002263,Exaggerated cupid's bow,LIP_CUPID_BOW,cupid_bow_drop,1,HIGH,67,0,True
+HP:0002553,Highly arched eyebrow,EB_ARCH,eb_arch_mean,1,HIGH,151,4,True
+HP:0002714,Downturned corners of mouth,MOUTH_CORNER_ANGLE,mouth_corner_drop,1,HIGH,86,2,True
+HP:0003189,Long nose,NOSE_LENGTH,nose_length,1,HIGH,23,0,True
+HP:0003196,Short nose,NOSE_LENGTH,nose_length,-1,HIGH,221,4,True
+HP:0007633,Bilateral microphthalmos,EYE_SIZE,eye_area_mean,-1,HIGH,0,0,False
+HP:0007651,Ectropion of lower eyelids,EYE_LOWER_LID_POS,eye_lower_lid_to_iris_mean,1,MEDIUM,0,0,False
+HP:0007655,Eversion of lateral third of lower eyelids,EYE_LOWER_LID_POS,eye_lower_lid_to_iris_mean,1,MEDIUM,54,0,True
+HP:0007874,Almond-shaped palpebral fissure,EYE_FISSURE_SHAPE,eye_fissure_aspect_mean,-1,HIGH,16,0,True
+HP:0007933,Broad lateral eyebrow,EB_LATERAL_SHAPE,eb_lateral_thickness_mean,1,HIGH,7,0,True
+HP:0007946,Unilateral narrow palpebral fissure,EYE_ASYMMETRY,eye_fissure_length_asym,1,HIGH,0,0,False
+HP:0009765,Low hanging columella,NOSE_COLUMELLA,columella_hang_below_ala,1,HIGH,71,3,True
+HP:0009890,High anterior hairline,HAIRLINE_POSITION,hairline_height,1,HIGH,10,2,True
+HP:0009927,Aplasia of the nose,NOSE_PRESENCE,nose_to_face_area_ratio,-1,LOW,0,0,False
+HP:0009931,Enlarged naris,NOSE_NOSTRIL_SIZE,nostril_region_area,1,MEDIUM,5,0,True
+HP:0010747,Medial flaring of the eyebrow,EB_MEDIAL_SHAPE,eb_medial_flare_mean,1,HIGH,10,0,True
+HP:0010803,Everted upper lip vermilion,LIP_EVERSION,upper_lip_eversion,1,HIGH,35,0,True
+HP:0010804,Tented upper lip vermilion,MOUTH_SHAPE,mouth_tenting,1,HIGH,68,0,True
+HP:0010806,U-Shaped upper lip vermilion,MOUTH_SHAPE,mouth_upper_fit_residual,1,MEDIUM,14,0,True
+HP:0011229,Broad eyebrow,EB_THICKNESS,eb_thickness_mean,1,HIGH,27,0,True
+HP:0011822,Broad chin,CHIN_WIDTH,chin_width,1,HIGH,5,0,True
+HP:0012471,Thick vermilion border,LIP_VERMILION_BORDER,vermilion_total,1,HIGH,71,0,True
+HP:0012745,Short palpebral fissure,EYE_FISSURE_LENGTH,eye_fissure_length_mean,-1,HIGH,51,0,True
+HP:0012801,Narrow jaw,JAW_WIDTH,jaw_bigonial_width,-1,HIGH,0,0,False
+HP:0012806,Proboscis,NOSE_PRESENCE,nose_to_face_area_ratio,0,LOW,0,0,False
+HP:0012810,Wide nasal base,NOSE_BASE_WIDTH,nose_base_width,1,HIGH,64,0,True
+HP:0012811,Wide nasal ridge,NOSE_BRIDGE_WIDTH,nose_bridge_width,1,HIGH,9,0,True
+HP:0020045,Esodeviation,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,MEDIUM,10,0,True
+HP:0031623,Brow ptosis,EB_POSITION,eb_position_mean,-1,HIGH,0,0,False
+HP:0033142,Long nasal bridge,NOSE_BRIDGE_LENGTH,nose_bridge_length,1,HIGH,0,0,False
+HP:0045025,Narrow palpebral fissure,EYE_FISSURE_HEIGHT,eye_fissure_height_mean,-1,HIGH,54,3,True
+HP:0045074,Thin eyebrow,EB_THICKNESS,eb_thickness_mean,-1,HIGH,11,0,True
+HP:0200096,Triangular-shaped open mouth,MOUTH_SHAPE,mouth_triangularity,1,HIGH,0,0,False
+HP:0410030,Cleft lip,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,2,4,True
