@@ -36,8 +36,34 @@ A single `facekit` entry point exposes all commands:
 | `facekit extract-features` | Compute the full ~125-column geometric phenotype CSV from images or a landmark JSONL. Supports `--mode disease-specific` and `--frontal-check`. |
 | `facekit extract-features-custom` | Same extractor, but driven by a user JSON that maps cohort folder names to a chosen subset of feature groups (no MONDO needed). Optionally loads a user Python file with extra `@register_feature` formulas. |
 | `facekit resolve-diseases` | Helper that resolves disease names to MONDO IDs and caches the results. |
+| 🚧 HPO prediction | _Coming soon_ — predict per-patient HPO phenotype terms directly from the geometric features. |
+| 🚧 Privacy evaluation | _Coming soon_ — quantify the re-identification risk of the derived face representations. |
 
 Run any command with `--help` for the full flag list.
+
+## What each command does
+
+> Example faces are derived from the [GestaltMatcher Database (GMDB)](https://db.gestaltmatcher.org) and are shown with consent.
+
+One real example per command, produced by `scripts/make_figures.py`.
+
+### `average-face`
+
+![average-face](figures/average-face.png)
+
+Average face of the Williams syndrome cohort (GMDB).
+
+### `extract-landmarks`
+
+![extract-landmarks](figures/extract-landmarks.png)
+
+478-point MediaPipe mesh on an example face.
+
+### `extract-features`
+
+![extract-features](figures/extract-features.png)
+
+Four geometric measurements (IPD, inter-canthal, nasal base width, mouth width) drawn on the face.
 
 ### Quick start
 
@@ -92,6 +118,16 @@ facekit extract-features-custom \
 
 Plugins are sandboxed against the base 125 columns and the HPO direction
 codes; collisions raise at registration time.
+
+## Roadmap
+
+Two capabilities are in development and not yet available:
+
+- 🚧 **HPO prediction** — predict per-patient [HPO](https://hpo.jax.org/) phenotype
+  terms directly from the extracted geometric features, turning the 125-column
+  representation into a ranked list of candidate facial phenotypes.
+- 🚧 **Privacy evaluation** — quantify how much identity information survives in the
+  derived face representations, to support safe sharing of FaceKit outputs.
 
 ## Project layout
 
