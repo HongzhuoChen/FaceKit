@@ -7,8 +7,10 @@ Shared by BOTH methods so rule and learned stay on one decision path:
     likely artifact and clipped to +/-Z_CLIP before ranking / thresholding. (The learned
     model clips its STANDARDIZED INPUTS to +/-Z_CLIP instead, in step5.)
   * 1.5-B per-HPO threshold: replace the single global tau / prob cutoff with one decision
-    threshold per HPO, tuned on val by that HPO's F1 (gold-present vs freq-screened clean
-    negatives). HPO with no val signal fall back to the global trusted-subset-F1 threshold.
+    threshold per HPO, tuned on val by that HPO's TRUSTED-SUBSET F1 -- the same objective
+    (HIGH-confidence direction codes intersected with high-freq HPO) the trusted-F1 headline
+    reports, so tuning and metric agree. HPO with too few positive trusted val cells fall
+    back to the pooled-trusted-subset-F1 global threshold.
 
 Abstained (patient, HPO) cells are simply absent from the prediction frame; nothing here
 re-introduces them.
@@ -41,48 +43,51 @@ def _f1_at(scores, labels, thr):
 
 
 def tune_per_hpo_thresholds(val_preds, val_meta, freq_table, conf, vocab, grid):
-    """Tune one threshold per HPO on val. Returns (per_hpo dict, sweep_df, global_thr).
+    """Tune one threshold per HPO on val by the TRUSTED-SUBSET F1. Returns
+    (per_hpo dict, sweep_df, global_thr).
 
-    per-HPO labels (PU): gold-present = 1; not-present & disease-freq <= F_LOW = 0; the
-    rest are unlabeled and dropped. HPO lacking >=1 positive AND >=1 negative on val
-    inherit `global_thr` (the threshold that maximizes the pooled trusted-subset F1).
+    Objective matches the headline exactly (eval_protocol.trusted_subset_strict): the
+    trusted subset is the set of cells where the HPO is HIGH-confidence AND the patient's
+    disease annotates it at freq >= F_HIGH; within that subset positive = gold-present,
+    negative = not-present. Cells outside the trusted subset are not used for tuning.
+
+    Per-HPO threshold is the val-trusted-F1 argmax over `grid`, but only for HPO with
+    >= config.MIN_TRUSTED_SUPPORT positive trusted val cells; sparser HPO fall back to
+    `global_thr` (the threshold maximizing the POOLED trusted-subset F1) rather than a
+    degenerate 0/1.
     """
     meta = val_meta.set_index("patient_id")
-    f_high, f_low = config.F_HIGH, config.F_LOW
+    f_high = config.F_HIGH
 
-    # attach per-cell (label, trusted?) to the prediction rows present (non-abstained)
+    # collect the trusted-subset cells (non-abstained val prediction rows only), labeled
+    # gold-present(1)/not-present(0) -- identical membership to the trusted-F1 headline.
     rows = []
     for r in val_preds.itertuples(index=False):
         pid, h, sc = r.patient_id, r.hpo_id, r.score
         if pid not in meta.index:
             continue
-        present = meta.at[pid, "present"]
+        if conf.get(h) != "HIGH":
+            continue  # only HIGH-confidence direction codes enter the trusted subset
         omim = meta.at[pid, "omim"]
-        fr = freq_table.get(omim, {}).get(h, 0.0)
-        if h in present:
-            lab = 1
-        elif fr <= f_low:
-            lab = 0
-        else:
-            lab = -1  # unlabeled
-        trusted = (conf.get(h) == "HIGH") and (fr >= f_high)
-        rows.append((pid, h, float(sc), lab, trusted))
-    cell = pd.DataFrame(rows, columns=["patient_id", "hpo_id", "score", "label", "trusted"])
+        if freq_table.get(omim, {}).get(h, 0.0) < f_high:
+            continue  # below high-freq -> not in the trusted subset
+        lab = 1 if h in meta.at[pid, "present"] else 0
+        rows.append((pid, h, float(sc), lab))
+    cell = pd.DataFrame(rows, columns=["patient_id", "hpo_id", "score", "label"])
 
-    # global fallback: pooled trusted-subset F1 (same criterion Phase-1 used for tau)
-    tr = cell[cell["trusted"] & cell["label"].isin([0, 1])]
-    if len(tr) and (tr["label"] == 1).any() and (tr["label"] == 0).any():
-        g_scores, g_labels = tr["score"].to_numpy(), tr["label"].to_numpy()
+    # global fallback: pooled trusted-subset F1
+    if len(cell) and (cell["label"] == 1).any() and (cell["label"] == 0).any():
+        g_scores, g_labels = cell["score"].to_numpy(), cell["label"].to_numpy()
         global_thr = max(grid, key=lambda t: (_f1_at(g_scores, g_labels, t), -t))
     else:
         global_thr = float(min(grid))
 
     sweep, per_hpo = [], {}
     for h in vocab:
-        sub = cell[(cell["hpo_id"] == h) & cell["label"].isin([0, 1])]
+        sub = cell[cell["hpo_id"] == h]
         s, lab = sub["score"].to_numpy(), sub["label"].to_numpy()
         n_pos, n_neg = int((lab == 1).sum()), int((lab == 0).sum())
-        if n_pos > 0 and n_neg > 0:
+        if n_pos >= config.MIN_TRUSTED_SUPPORT:
             thr = max(grid, key=lambda t: (_f1_at(s, lab, t), -t))
             f1 = _f1_at(s, lab, thr)
             source = "per_hpo"

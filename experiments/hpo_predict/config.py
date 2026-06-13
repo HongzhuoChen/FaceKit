@@ -67,6 +67,10 @@ POSE_EXCLUDE_DEG = {"yaw": 25.0, "pitch": 25.0, "roll": 20.0}  # extreme  -> dro
 MOUTH_OPEN_THRESH = 0.30  # mouth_opening above this -> NaN-mask LIP_*/MOUTH_* families on that image
 MEDIUM_CONF_WEIGHT = 0.5  # MEDIUM-confidence direction codes: multiply score by this (1.5-C)
 Z_CLIP = 5.0              # clip |directional z| (rule score / learned standardized input) (1.5-D)
+# 1.5-B per-HPO thresholds are tuned on val by the TRUSTED-SUBSET F1 (same objective the
+# headline reports). An HPO with fewer than this many positive trusted val cells lacks a
+# reliable per-HPO optimum -> falls back to the pooled-trusted-F1 global threshold.
+MIN_TRUSTED_SUPPORT = 5
 
 # -------------------------------------------------------------------------------------
 # Directional pose -> feature-family map (1.5-A). EXPLICIT and documented; the reviewer
