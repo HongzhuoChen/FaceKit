@@ -15,6 +15,30 @@ import pandas as pd
 import common
 import config
 import eval_protocol
+import thresholds
+
+
+def build_rule_scores(table, mean, std, dc, conf):
+    """Phase 1.5: transformed rule scores, long [patient_id, hpo_id, score].
+
+    signed_z = expected_direction * z[csv_column], then 1.5-D z-clip and 1.5-C MEDIUM
+    down-weight (via the shared `thresholds.apply_score_transforms`). A patient ABSTAINS
+    on an HPO whose source column is NaN after gating (no z -> no row emitted), matching
+    the rule baseline's "no signal -> no fire" semantics. pred_pos is set later by the
+    per-HPO thresholds.
+    """
+    feats = list(mean.index)
+    z = (table[feats] - mean) / std  # (P, F); NaN where a gated feature is NaN
+    rows = []
+    for r in dc.itertuples(index=False):
+        hpo, col, direction = r.hpo_id, r.csv_column, int(r.expected_direction)
+        signed = direction * z[col].to_numpy()
+        for pid, sc in zip(table["patient_id"].to_numpy(), signed):
+            if np.isnan(sc):
+                continue  # abstain: gated NaN feature -> no directional z
+            rows.append((int(pid), hpo, float(sc)))
+    preds = pd.DataFrame(rows, columns=["patient_id", "hpo_id", "score"])
+    return thresholds.apply_score_transforms(preds, conf, is_prob=False)
 
 
 def build_predictions(table, mean, std, dc, tau):

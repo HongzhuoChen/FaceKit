@@ -54,6 +54,11 @@ def evaluate(predictions, patients_meta, freq_table, direction_conf, vocab, is_p
     meta = patients_meta.set_index("patient_id")
     scores = _pivot(predictions, vocab, "score", fill=float("-inf"))
     preds = _pivot(predictions, vocab, "pred_pos", fill=False).astype(bool)
+    # abstention (Phase 1.5): a (patient, HPO) cell with NO prediction row is abstained —
+    # excluded from ranking, arbitration and trusted-subset scoring (never scored as a
+    # negative). Phase-1 predictions cover every cell -> abstain all-False -> unchanged.
+    ind = predictions.assign(_has=1).pivot(index="patient_id", columns="hpo_id", values="_has")
+    abstain = ind.reindex(index=scores.index, columns=vocab).isna()
     # align meta to the patients we have predictions for
     meta = meta.loc[scores.index]
 
@@ -73,8 +78,11 @@ def evaluate(predictions, patients_meta, freq_table, direction_conf, vocab, is_p
         omim = meta.at[pid, "omim"]
         present = meta.at[pid, "present"]
         s = row.to_numpy(dtype=float)
-        labels = np.full(len(vocab), -1, dtype=int)  # -1 = dropped/unlabeled
+        ab = abstain.loc[pid].to_numpy()
+        labels = np.full(len(vocab), -1, dtype=int)  # -1 = dropped/unlabeled/abstained
         for j, h in enumerate(vocab):
+            if ab[j]:
+                continue  # abstained cell -> not scored
             if h in present:
                 labels[j] = 1
             elif _freq(freq_table, omim, h) <= f_low:
@@ -130,22 +138,32 @@ def evaluate(predictions, patients_meta, freq_table, direction_conf, vocab, is_p
         omim = meta.at[pid, "omim"]
         present = meta.at[pid, "present"]
         absent = meta.at[pid, "absent"]
+        ab = abstain.loc[pid].to_numpy()
+        pred_set = set()
         for j, h in enumerate(vocab):
+            if ab[j]:
+                continue  # abstained cell -> not scored
             if row.iloc[j]:  # predicted positive
+                pred_set.add(h)
                 if h in present:
                     tp += 1
                 else:
                     naive_fp += 1
                     fr = _freq(freq_table, omim, h)
-                    if fr >= f_high and direction_conf.get(h) == "HIGH":
+                    # gold ABSENT vetoes the "gold likely-missing" branch: a term gold
+                    # explicitly marked absent is a true FP, never a missed-label hit.
+                    if h in absent:
+                        true_fp += 1
+                        absent_fp += 1
+                    elif fr >= f_high and direction_conf.get(h) == "HIGH":
                         missed += 1
                     elif fr <= f_low:
                         true_fp += 1
                     else:
                         grey += 1
-                    if h in absent:
-                        absent_fp += 1
-        fn += len(present - set(h for j, h in enumerate(vocab) if row.iloc[j]))
+        # FN over gold-present terms that were NOT abstained (abstained gold isn't scored)
+        present_observed = {h for j, h in enumerate(vocab) if (h in present) and not ab[j]}
+        fn += len(present_observed - pred_set)
 
     def _safe(a, b):
         return float(a / b) if b else float("nan")
@@ -155,7 +173,10 @@ def evaluate(predictions, patients_meta, freq_table, direction_conf, vocab, is_p
     for pid, row in preds.iterrows():
         omim = meta.at[pid, "omim"]
         present = meta.at[pid, "present"]
+        ab = abstain.loc[pid].to_numpy()
         for j, h in enumerate(vocab):
+            if ab[j]:
+                continue  # abstained cell -> not scored
             if direction_conf.get(h) != "HIGH" or _freq(freq_table, omim, h) < f_high:
                 continue
             pp, gp = bool(row.iloc[j]), (h in present)
