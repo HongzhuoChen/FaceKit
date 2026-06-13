@@ -5,11 +5,15 @@ one place. None of this depends on the HuggingFace `datasets` library (that is r
 exactly once, in step 1, to materialize labels/gold_hpo_facial.csv).
 """
 import re
+import warnings
 
 import numpy as np
 import pandas as pd
 
 import config
+
+# wide (131-col) frame ops trigger pandas fragmentation warnings; harmless at this scale
+warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
 _PAT_RE = re.compile(r"^pat(\d+)_img(\d+)$")
 
@@ -36,7 +40,8 @@ def facial_vocab() -> list[str]:
 
 def feature_columns(phenotypes: pd.DataFrame) -> list[str]:
     """The 125 geometric feature columns (everything that is not metadata/pose)."""
-    return [c for c in phenotypes.columns if c not in config.NON_FEATURE_COLS]
+    skip = set(config.NON_FEATURE_COLS) | {"patient_id"}
+    return [c for c in phenotypes.columns if c not in skip]
 
 
 def _parse_patient_id(image_id: str) -> int:
@@ -49,8 +54,7 @@ def _parse_patient_id(image_id: str) -> int:
 def load_phenotypes() -> pd.DataFrame:
     """Per-image geometric features + disease + parsed patient_id."""
     df = pd.read_csv(config.PHENOTYPES_CSV)
-    df["patient_id"] = df["image_id"].map(_parse_patient_id)
-    return df
+    return df.assign(patient_id=df["image_id"].map(_parse_patient_id))
 
 
 def parse_hpo_list(cell) -> list[str]:
@@ -132,3 +136,32 @@ def disease_omim_map() -> dict[str, str]:
     """{disease_name: OMIM_id} (step-1 output)."""
     df = pd.read_csv(config.DISEASE_OMIM_CSV)
     return dict(zip(df["disease"], df["omim"]))
+
+
+def direction_conf_map() -> dict[str, str]:
+    """{facial_hpo: confidence} from the direction codes."""
+    dc = load_direction_codes()
+    return dict(zip(dc["hpo_id"], dc["confidence"]))
+
+
+def load_patient_table(run_dir) -> tuple[pd.DataFrame, list[str]]:
+    """Per-patient table joined to the split: one row per patient.
+
+    Columns: patient_id, disease, omim, split, present(set), absent(set) + 125 feats.
+    Returns (table, feature_cols).
+    """
+    pheno = load_phenotypes()
+    feats = feature_columns(pheno)
+    pooled = pool_patients(pheno, gold=load_gold())
+    pooled = pooled.rename(columns={"present_facial_hpo": "present", "absent_facial_hpo": "absent"})
+    pooled["omim"] = pooled["disease"].map(disease_omim_map())
+    split = pd.read_csv(run_dir / "split.csv")[["patient_id", "split"]]
+    table = pooled.merge(split, on="patient_id", how="inner")
+    return table, feats
+
+
+def zscore_stats(train_feats: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+    """Population mean/std fit on TRAIN rows only (std floored to avoid /0)."""
+    mean = train_feats.mean()
+    std = train_feats.std(ddof=0).replace(0.0, 1.0)
+    return mean, std
