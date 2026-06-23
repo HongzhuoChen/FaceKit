@@ -60,20 +60,16 @@ N_TEST = 100  # gold-positive patients held out as the test set (stratified by d
 # Drop direction codes that are (a) expected_direction == 0 (no signed proxy),
 # (b) confidence == 'LOW', or (c) in DROP_FEATURE_GROUPS below.
 #
-# !!! ASSUMPTION (flagged in QUESTIONS.md) !!!
-# PLAN step 0 says to drop "the 6 listed groups" but never enumerates them; it only
-# pins the target count 100 -> 83. After dropping dir==0 / LOW (2 unique rows) 98
-# remain, so the 6 groups must remove exactly 15 terms. The set below is a documented,
-# rationale-based default (transient / asymmetry / pose-confounded / presence-binary
-# families that are unreliable from a single mean-pooled frontal image) that yields
-# exactly 83. CONFIRM the intended 6 groups; correcting is a one-line edit here.
+# These are the 6 feature_groups enumerated by PLAN.md step 0 (authoritative per
+# user directive 2026-06-23, resolving QUESTIONS.md Q1). After dropping dir==0 / LOW
+# (2 unique rows), removing these groups yields exactly the PLAN-specified 83 HPO.
 DROP_FEATURE_GROUPS = (
-    "EYE_GAZE_ASYMMETRY",  # 4 - gaze direction is transient, not anatomy
-    "LIP_CLEFT",           # 5 - presence/binary; documented Phase-1 artifact source (pat9656)
-    "FACE_ASPECT_RATIO",   # 3 - strongly pitch/pose sensitive
-    "FACE_ASYMMETRY",      # 1 - asymmetry pose-confounded
-    "EYE_ASYMMETRY",       # 1 - asymmetry pose-confounded
-    "HEAD_FRONTAL_TAPER",  # 1 - global head-shape, pose sensitive
+    "EYE_GAZE_ASYMMETRY",
+    "LIP_CLEFT",
+    "EB_INTER_DISTANCE",
+    "HAIRLINE_POSITION",
+    "MALAR_FULLNESS",
+    "EYE_LOWER_LID_POS",
 )
 
 # --- Step 2 disease-prior threshold sweep ---
