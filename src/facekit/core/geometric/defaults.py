@@ -16,8 +16,8 @@ DEFAULT_FEATURE_MAPPING = Path(
     "mm_fusion_top50/feature_disease_mapping.json"
 )
 
-# HPO term -> feature_group / csv_column codes.
-DEFAULT_HPO_CODES = Path(
-    "/vast/projects/kai/multimodal-machine-learn/hongzhuo/"
-    "mm_fusion_top50/hpo_direction_codes.csv"
-)
+# HPO term -> feature_group / csv_column codes. Project-tracked: the file encodes
+# which feature is the sensor for each phenotype, and two of those mappings were
+# corrected by experiments/feature_validity. An out-of-tree copy would silently
+# revert them on the next run of hpo_predict/step2_build_labels.py.
+DEFAULT_HPO_CODES = Path(__file__).resolve().parents[3].parent / "labels" / "hpo_direction_codes.csv"

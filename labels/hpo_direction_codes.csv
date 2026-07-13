@@ -1,0 +1,101 @@
+hpo_id,hpo_name,feature_group,csv_column,expected_direction,confidence,rationale,n_diseases
+HP:0000154,Wide mouth,MOUTH_WIDTH,mouth_width,1,HIGH,Wide mouth -> larger commissure span,12
+HP:0000160,Narrow mouth,MOUTH_WIDTH,mouth_width,-1,HIGH,Narrow mouth -> smaller commissure span,4
+HP:0000161,Median cleft upper lip,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,Median cleft upper lip -> midline asymmetry indicator (caveat),2
+HP:0000202,Orofacial cleft,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,Orofacial cleft -> midline asymmetry indicator,3
+HP:0000204,Cleft upper lip,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,Cleft upper lip -> midline asymmetry,4
+HP:0002006,Tessier cleft,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,Tessier cleft -> midline asymmetry,1
+HP:0410030,Cleft lip,LIP_CLEFT,lip_midline_x_std,1,MEDIUM,Cleft lip -> midline asymmetry,1
+HP:0000179,Thick lower lip vermilion,LIP_LOWER_VERMILION,lower_vermilion_height,1,HIGH,Thick lower lip vermilion,7
+HP:0000194,Open mouth,MOUTH_HEIGHT,mouth_opening,1,HIGH,Open mouth -> larger inter-labial gap,8
+HP:0000207,Triangular mouth,MOUTH_SHAPE,mouth_triangularity,1,HIGH,Triangular mouth -> corners drop further below peaks,1
+HP:0010804,Tented upper lip vermilion,MOUTH_SHAPE,mouth_tenting,1,HIGH,Tented upper lip -> sharper tent point,4
+HP:0010806,U-Shaped upper lip vermilion,MOUTH_SHAPE,mouth_upper_fit_residual,1,MEDIUM,U-shaped upper lip -> larger residual to quadratic fit,1
+HP:0200096,Triangular-shaped open mouth,MOUTH_SHAPE,mouth_triangularity,1,HIGH,Triangular-shaped open mouth,1
+HP:0000215,Thick upper lip vermilion,LIP_UPPER_VERMILION,upper_vermilion_height,1,HIGH,Thick upper lip vermilion,2
+HP:0000219,Thin upper lip vermilion,LIP_UPPER_VERMILION,upper_vermilion_height,-1,HIGH,Thin upper lip vermilion,18
+HP:0000232,Everted lower lip vermilion,LIP_EVERSION,lower_lip_eversion,1,HIGH,Everted lower lip vermilion -> larger outer-inner y-gap,5
+HP:0010803,Everted upper lip vermilion,LIP_EVERSION,upper_lip_eversion,1,HIGH,Everted upper lip vermilion -> larger inner-outer y-gap,4
+HP:0000233,Thin vermilion border,LIP_VERMILION_BORDER,vermilion_total,-1,HIGH,Thin vermilion border -> smaller total vermilion height,4
+HP:0012471,Thick vermilion border,LIP_VERMILION_BORDER,vermilion_total,1,HIGH,Thick vermilion border -> larger total vermilion height,3
+HP:0000243,Trigonocephaly,HEAD_FRONTAL_TAPER,forehead_taper_ratio,-1,HIGH,"Trigonocephaly -> upper forehead narrows, ratio < 1",3
+HP:0000272,Malar flattening,MALAR_FULLNESS,malar_bulge_mean,1,MEDIUM,"Malar flattening (note: code sign inverted vs comment, S1)",8
+HP:0000275,Narrow face,FACE_ASPECT_RATIO,face_aspect_ratio,-1,HIGH,Narrow face -> smaller bz/fh,1
+HP:0000276,Long face,FACE_ASPECT_RATIO,face_aspect_ratio,-1,HIGH,Long face -> smaller bz/fh,7
+HP:0000283,Broad face,FACE_ASPECT_RATIO,face_aspect_ratio,1,HIGH,Broad face -> larger bz/fh,2
+HP:0000286,Epicanthus,EYE_EPICANTHUS,gaze_asym_x,1,HIGH,"Epicanthus -> the fold displaces the detected inner canthus laterally in BOTH eyes, which is antisymmetric in image x, so iris_offset_x_r - iris_offset_x_l accumulates; eye_epicanthus_angle_mean is inverted (held-out AUC 0.432 vs 0.686), see experiments/feature_validity",20
+HP:0000537,Epicanthus inversus,EYE_EPICANTHUS,eye_epicanthus_angle_mean,-1,HIGH,Epicanthus inversus -> sharper inner-canthus fold,1
+HP:0000289,Broad philtrum,PHILTRUM_WIDTH,philtrum_width,1,HIGH,Broad philtrum -> larger cupid-bow peak span,1
+HP:0000293,Full cheeks,CHEEK_FULLNESS,cheek_area_mean,1,HIGH,Full cheeks -> larger cheek polygon area,5
+HP:0000294,Low anterior hairline,HAIRLINE_POSITION,hairline_height,-1,HIGH,Low anterior hairline -> smaller forehead-skin gap,4
+HP:0009890,High anterior hairline,HAIRLINE_POSITION,hairline_height,1,HIGH,High anterior hairline -> larger forehead-skin gap,2
+HP:0000307,Pointed chin,CHIN_SHAPE,chin_pointedness_angle,-1,HIGH,Pointed chin -> smaller angle at menton,8
+HP:0000311,Round face,FACE_SHAPE,face_roundness,1,HIGH,Round face -> isoperimetric ratio toward 1,2
+HP:0000321,Square face,FACE_SHAPE,face_width_uniformity,1,MEDIUM,Square face -> top/bottom widths near bizyg,2
+HP:0000325,Triangular face,FACE_SHAPE,face_triangularity,1,HIGH,Triangular face -> forehead wider than chin,8
+HP:0000316,Hypertelorism,EYE_INTER_PUPILLARY,inter_pupillary_distance,1,HIGH,Hypertelorism -> increased IPD,24
+HP:0000601,Hypotelorism,EYE_INTER_PUPILLARY,inter_pupillary_distance,-1,HIGH,Hypotelorism -> decreased IPD,5
+HP:0000322,Short philtrum,PHILTRUM_LENGTH,philtrum_length,-1,HIGH,Short philtrum -> smaller subnasale-vermilion distance,10
+HP:0000343,Long philtrum,PHILTRUM_LENGTH,philtrum_length,1,HIGH,Long philtrum -> larger subnasale-vermilion distance,17
+HP:0000324,Facial asymmetry,FACE_ASYMMETRY,face_asymmetry,1,HIGH,Facial asymmetry -> larger mean mirror-pair displacement,1
+HP:0000327,Hypoplasia of the maxilla,MIDFACE_WIDTH,midface_width,-1,HIGH,Hypoplasia of the maxilla -> reduced midface width,4
+HP:0002010,Narrow maxilla,MIDFACE_WIDTH,midface_width,-1,HIGH,Narrow maxilla,1
+HP:0000331,Short chin,CHIN_HEIGHT,chin_height,-1,HIGH,Short chin -> reduced lower-lip-to-menton vertical,2
+HP:0000347,Micrognathia,CHIN_HEIGHT,chin_height,-1,HIGH,Micrognathia -> reduced chin vertical,17
+HP:0000337,Broad forehead,FOREHEAD_WIDTH,forehead_width_upper,1,HIGH,Broad forehead -> wider temple-to-temple,6
+HP:0000341,Narrow forehead,FOREHEAD_WIDTH,forehead_width_upper,-1,HIGH,Narrow forehead,11
+HP:0000348,High forehead,FOREHEAD_HEIGHT,forehead_height,1,HIGH,High forehead -> increased trichion-glabella distance,5
+HP:0002003,Large forehead,FOREHEAD_HEIGHT,forehead_height,1,HIGH,Large forehead,1
+HP:0000414,Bulbous nose,NOSE_TIP_SHAPE,nose_tip_to_bridge_ratio,1,HIGH,Bulbous nose -> tip much wider than bridge,8
+HP:0000447,Pear-shaped nose,NOSE_TIP_SHAPE,nose_tip_to_bridge_ratio,1,HIGH,Pear-shaped nose -> tip wider than bridge,2
+HP:0000456,Bifid nasal tip,NOSE_TIP_SHAPE,nose_tip_midline_dent,1,HIGH,Bifid nasal tip -> midline dent at tip,3
+HP:0000430,Underdeveloped nasal alae,NOSE_ALA_SHAPE,nose_ala_height_mean,-1,HIGH,Underdeveloped nasal alae -> smaller alar vertical extent,6
+HP:0000431,Wide nasal bridge,NOSE_BRIDGE_WIDTH,nose_bridge_width,1,HIGH,Wide nasal bridge -> increased lateral mid-dorsum width,13
+HP:0000446,Narrow nasal bridge,NOSE_BRIDGE_WIDTH,nose_bridge_width,-1,HIGH,Narrow nasal bridge -> decreased lateral mid-dorsum width,3
+HP:0012811,Wide nasal ridge,NOSE_BRIDGE_WIDTH,nose_bridge_width,1,HIGH,Wide nasal ridge -> increased mid-dorsum width,1
+HP:0000437,Depressed nasal tip,NOSE_NOSTRIL_TILT,nose_tip_elevation,-1,HIGH,"Depressed nasal tip -> tip below subnasale, negative elevation",5
+HP:0000454,Flared nostrils,NOSE_NOSTRIL_TILT,ala_flare_angle,1,HIGH,Flared nostrils -> larger ala-subnasale-ala angle,2
+HP:0000463,Anteverted nares,NOSE_NOSTRIL_TILT,nose_length,-1,HIGH,"Anteverted nares -> upturned nose reads as a shorter nasion-subnasale span; nasolabial_angle is unusable (held-out AUC 0.543 vs 0.702), see experiments/feature_validity",18
+HP:0000445,Wide nose,NOSE_BASE_WIDTH,nose_base_width,1,HIGH,Wide nose -> wider alar base,2
+HP:0012810,Wide nasal base,NOSE_BASE_WIDTH,nose_base_width,1,HIGH,Wide nasal base,1
+HP:0000455,Broad nasal tip,NOSE_TIP_WIDTH,nose_tip_width,1,HIGH,Broad nasal tip -> wider alar-crest span,11
+HP:0000486,Strabismus,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,HIGH,"Strabismus -> any inter-eye gaze deviation, magnitude up",31
+HP:0000565,Esotropia,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,MEDIUM,Esotropia -> directional gaze deviation; norm captures magnitude,5
+HP:0000577,Exotropia,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,MEDIUM,Exotropia -> directional gaze deviation; norm captures magnitude,2
+HP:0020045,Esodeviation,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,MEDIUM,Esodeviation -> gaze magnitude up,1
+HP:0000494,Downslanted palpebral fissures,EYE_FISSURE_SLANT,eye_fissure_slant_mean,-1,HIGH,Downslanted palpebral fissures -> negative slant,21
+HP:0000582,Upslanted palpebral fissure,EYE_FISSURE_SLANT,eye_fissure_slant_mean,1,HIGH,Upslanted palpebral fissure -> positive slant,11
+HP:0000506,Telecanthus,EYE_INTER_CANTHAL,canthal_to_pupillary_ratio,1,HIGH,Telecanthus -> ICD elevated relative to IPD,3
+HP:0000508,Ptosis,EYE_UPPER_LID_POS,eye_upper_lid_to_iris_mean,-1,HIGH,"Ptosis -> upper lid drops toward iris, value approaches 0",21
+HP:0001488,Bilateral ptosis,EYE_UPPER_LID_POS,eye_upper_lid_to_iris_mean,-1,HIGH,"Bilateral ptosis -> as above, both sides",4
+HP:0000568,Microphthalmia,EYE_SIZE,eye_area_mean,-1,HIGH,Microphthalmia -> smaller visible eye polygon,3
+HP:0001090,Abnormally large globe,EYE_SIZE,eye_area_mean,1,HIGH,Abnormally large globe -> larger visible eye polygon,1
+HP:0007633,Bilateral microphthalmos,EYE_SIZE,eye_area_mean,-1,HIGH,Bilateral microphthalmos -> smaller visible eye polygon,1
+HP:0000574,Thick eyebrow,EB_THICKNESS,eb_thickness_mean,1,HIGH,Thick eyebrow -> larger brow polygon area,8
+HP:0011229,Broad eyebrow,EB_THICKNESS,eb_thickness_mean,1,HIGH,Broad eyebrow -> larger brow polygon area,2
+HP:0045074,Thin eyebrow,EB_THICKNESS,eb_thickness_mean,-1,HIGH,Thin eyebrow -> smaller brow polygon area,1
+HP:0000581,Blepharophimosis,EYE_FISSURE_LENGTH,eye_fissure_length_mean,-1,HIGH,Blepharophimosis -> shortened palpebral fissure,5
+HP:0000637,Long palpebral fissure,EYE_FISSURE_LENGTH,eye_fissure_length_mean,1,HIGH,Long palpebral fissure -> larger outer-inner canthus distance,7
+HP:0012745,Short palpebral fissure,EYE_FISSURE_LENGTH,eye_fissure_length_mean,-1,HIGH,Short palpebral fissure,4
+HP:0000664,Synophrys,EB_INTER_DISTANCE,eb_inter_distance,-1,HIGH,"Synophrys -> medial brow ends nearly meet, smaller gap",6
+HP:0002000,Short columella,NOSE_COLUMELLA,columella_length,-1,HIGH,Short columella -> smaller subnasale-tip vertical,4
+HP:0009765,Low hanging columella,NOSE_COLUMELLA,columella_hang_below_ala,1,HIGH,Low hanging columella -> subnasale below alar base,5
+HP:0002263,Exaggerated cupid's bow,LIP_CUPID_BOW,cupid_bow_drop,1,HIGH,Exaggerated cupid's bow -> P0 dip larger below peaks,2
+HP:0002553,Highly arched eyebrow,EB_ARCH,eb_arch_mean,1,HIGH,Highly arched eyebrow -> larger end-vs-peak vertical gap,9
+HP:0002714,Downturned corners of mouth,MOUTH_CORNER_ANGLE,mouth_corner_drop,1,HIGH,Downturned corners of mouth -> commissures below upper-lip top,9
+HP:0003189,Long nose,NOSE_LENGTH,nose_length,1,HIGH,Long nose -> increased nasion-subnasale distance,1
+HP:0003196,Short nose,NOSE_LENGTH,nose_length,-1,HIGH,Short nose -> reduced nasion-subnasale distance,12
+HP:0007651,Ectropion of lower eyelids,EYE_LOWER_LID_POS,eye_lower_lid_to_iris_mean,1,MEDIUM,"Ectropion -> lower lid pulls down, larger lid-to-iris gap",1
+HP:0007655,Eversion of lateral third of lower eyelids,EYE_LOWER_LID_POS,eye_lower_lid_to_iris_mean,1,MEDIUM,Lateral-third eyelid eversion -> partial lower-lid drop,2
+HP:0007874,Almond-shaped palpebral fissure,EYE_FISSURE_SHAPE,eye_fissure_aspect_mean,-1,HIGH,"Almond-shaped fissure -> elongated, low height/length",1
+HP:0007933,Broad lateral eyebrow,EB_LATERAL_SHAPE,eb_lateral_thickness_mean,1,HIGH,Broad lateral eyebrow -> larger lateral-third area,1
+HP:0007946,Unilateral narrow palpebral fissure,EYE_ASYMMETRY,eye_fissure_length_asym,1,HIGH,Unilateral narrow palpebral fissure -> length asymmetry up,1
+HP:0009927,Aplasia of the nose,NOSE_PRESENCE,nose_to_face_area_ratio,-1,LOW,Aplasia of the nose -> nose region absent (extreme rare),1
+HP:0012806,Proboscis,NOSE_PRESENCE,nose_to_face_area_ratio,0,LOW,"Proboscis -> shape descriptor, single scalar ambiguous",2
+HP:0009931,Enlarged naris,NOSE_NOSTRIL_SIZE,nostril_region_area,1,MEDIUM,Enlarged naris -> larger frontal nostril-region polygon,1
+HP:0010747,Medial flaring of the eyebrow,EB_MEDIAL_SHAPE,eb_medial_flare_mean,1,HIGH,Medial flaring of eyebrow -> upward slope toward midline,1
+HP:0011822,Broad chin,CHIN_WIDTH,chin_width,1,HIGH,Broad chin -> larger jawline-near-chin width,2
+HP:0012801,Narrow jaw,JAW_WIDTH,jaw_bigonial_width,-1,HIGH,Narrow jaw -> reduced bigonial width,1
+HP:0031623,Brow ptosis,EB_POSITION,eb_position_mean,-1,HIGH,"Brow ptosis -> brow drops toward upper eyelid, smaller vertical gap",1
+HP:0033142,Long nasal bridge,NOSE_BRIDGE_LENGTH,nose_bridge_length,1,HIGH,Long nasal bridge -> increased nasion-tip distance,1
+HP:0045025,Narrow palpebral fissure,EYE_FISSURE_HEIGHT,eye_fissure_height_mean,-1,HIGH,Narrow palpebral fissure -> smaller top-bot distance,3

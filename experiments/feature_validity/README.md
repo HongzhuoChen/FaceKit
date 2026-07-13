@@ -91,9 +91,12 @@ Six terms pass CROSS at AUC 0.65–0.77 but are refused by the zero-confound WIT
 contrast (short nose, long face, narrow mouth, low hanging columella, thick vermilion,
 everted lower lip). Their validity claims do not stand.
 
-## Known gap
+## Source of truth
 
-`hpo_direction_codes.csv` — the source of truth that `facial_hpo_vocab.csv` is
-regenerated from by `experiments/hpo_predict/step2_build_labels.py` — lives outside
-this repo (`mm_fusion_top50/`). The two re-mappings were applied there as well, but
-that edit is not captured by this commit.
+`facial_hpo_vocab.csv` is *generated*, not authored: `hpo_predict/step2_build_labels.py`
+rebuilds it from `hpo_direction_codes.csv`. That file used to live outside the repo, so
+any rerun of step2 on a machine with a stale copy would have silently reverted the two
+re-mappings above. It is now tracked at `labels/hpo_direction_codes.csv` and is what
+`defaults.py` and both `hpo_predict*/config.py` read by default (still overridable via
+`FACEKIT_DIRECTION_CODES_CSV`). Re-running step2 now reproduces `facial_hpo_vocab.csv`
+byte-for-byte.

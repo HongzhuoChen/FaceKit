@@ -19,8 +19,11 @@ DATA_ROOT = Path(
 PHENOTYPES_CSV = Path(
     os.environ.get("FACEKIT_PHENOTYPES_CSV", DATA_ROOT / "mm_fusion_top50/combined_data/phenotypes.csv")
 )
+# Project-tracked: two of these HPO -> csv_column mappings were corrected by
+# experiments/feature_validity, and an out-of-tree copy would silently revert
+# them the next time step2 regenerates facial_hpo_vocab.csv.
 DIRECTION_CODES_CSV = Path(
-    os.environ.get("FACEKIT_DIRECTION_CODES_CSV", DATA_ROOT / "mm_fusion_top50/hpo_direction_codes.csv")
+    os.environ.get("FACEKIT_DIRECTION_CODES_CSV", REPO_ROOT / "labels/hpo_direction_codes.csv")
 )
 HPOA_PATH = Path(os.environ.get("FACEKIT_HPOA", DATA_ROOT / "mm_fusion_top10/phenotype.hpoa"))
 GOLD_HF_DATASET = os.environ.get("FACEKIT_GOLD_HF", "HzChen20/GMDB_enhanced_new_top100_filtered")
