@@ -16,7 +16,7 @@ HP:0000272,Malar flattening,MALAR_FULLNESS,malar_bulge_mean,1,MEDIUM,54,4,True
 HP:0000275,Narrow face,FACE_ASPECT_RATIO,face_aspect_ratio,-1,HIGH,31,0,True
 HP:0000276,Long face,FACE_ASPECT_RATIO,face_aspect_ratio,-1,HIGH,136,0,True
 HP:0000283,Broad face,FACE_ASPECT_RATIO,face_aspect_ratio,1,HIGH,9,0,True
-HP:0000286,Epicanthus,EYE_EPICANTHUS,eye_epicanthus_angle_mean,-1,HIGH,136,7,True
+HP:0000286,Epicanthus,EYE_EPICANTHUS,gaze_asym_x,1,HIGH,136,7,True
 HP:0000289,Broad philtrum,PHILTRUM_WIDTH,philtrum_width,1,HIGH,92,0,True
 HP:0000293,Full cheeks,CHEEK_FULLNESS,cheek_area_mean,1,HIGH,91,2,True
 HP:0000294,Low anterior hairline,HAIRLINE_POSITION,hairline_height,-1,HIGH,132,7,True
@@ -44,7 +44,7 @@ HP:0000447,Pear-shaped nose,NOSE_TIP_SHAPE,nose_tip_to_bridge_ratio,1,HIGH,3,0,T
 HP:0000454,Flared nostrils,NOSE_NOSTRIL_TILT,ala_flare_angle,1,HIGH,45,0,True
 HP:0000455,Broad nasal tip,NOSE_TIP_WIDTH,nose_tip_width,1,HIGH,112,0,True
 HP:0000456,Bifid nasal tip,NOSE_TIP_SHAPE,nose_tip_midline_dent,1,HIGH,0,0,False
-HP:0000463,Anteverted nares,NOSE_NOSTRIL_TILT,nasolabial_angle,1,HIGH,330,2,True
+HP:0000463,Anteverted nares,NOSE_NOSTRIL_TILT,nose_length,-1,HIGH,330,2,True
 HP:0000486,Strabismus,EYE_GAZE_ASYMMETRY,gaze_asym_norm,1,HIGH,278,3,True
 HP:0000494,Downslanted palpebral fissures,EYE_FISSURE_SLANT,eye_fissure_slant_mean,-1,HIGH,315,3,True
 HP:0000506,Telecanthus,EYE_INTER_CANTHAL,canthal_to_pupillary_ratio,1,HIGH,38,0,True
