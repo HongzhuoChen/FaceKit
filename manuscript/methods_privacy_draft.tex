@@ -1,0 +1,77 @@
+% Draft subsection for the Methods section of main.tex.
+% Suggested placement: after \subsection{Synthetic Facial Image Generation},
+% before \subsection{Landmark visualization}.
+%
+% Scope note: following the style of the other Methods subsections, this text
+%   describes only how the assessment is carried out. The rationale for
+%   comparing against a held-out baseline instead of a fixed verification
+%   threshold, together with all reported values, belongs to Results 3.3 and is
+%   deliberately absent here.
+%
+% TODO before merging into main.tex:
+%   - add .bib entries and replace the citation keys arcface / adaface / lvface
+%     / insightface / lpips / nnaa with the real ones
+%   - CONFIRM that the held-out split is patient-level disjoint from the
+%     training split; the sentence asserting this is the single most
+%     load-bearing claim of the whole privacy analysis
+%   - fill <UNVERIFIED> bootstrap replicate count (config default is 10, which
+%     is a smoke-test value; state the number actually used)
+%   - confirm the LPIPS backbone actually used (config default: AlexNet)
+%   - confirm the AdaFace and LVFace checkpoints (ir_50 trained on MS1MV2, and
+%     LVFace-L_Glint360K, respectively)
+%   - the paper contains no display equations; adversarial accuracy is
+%     therefore defined in prose. If a reviewer asks for a formal definition,
+%     add a single display equation here rather than several
+%   - cohort counts, image counts and detection-failure rates are reported in
+%     Results 3.3, not here
+
+\subsection{Privacy Assessment of the Pre-trained Generators}
+
+Because the generators distributed with FaceKit are trained on photographs of
+real individuals, the synthetic images they produce are assessed before
+release for residual similarity to the training data. Two aspects are examined
+separately: whether a synthetic image reproduces the identity of a training
+individual, and whether it reproduces the appearance of a training photograph.
+
+For the identity assessment, the prepared images of each cohort are divided
+into a training partition, which is used to fit the generator, and a held-out
+partition, which is disjoint from it at the patient level and never enters
+generator training. Synthetic images are then sampled from the corresponding
+generator. Faces are detected with InsightFace~\cite{insightface}, and the
+five detected keypoints are used to align each face to a $112\times112$ crop
+through a similarity transform. Identity embeddings are extracted with
+ArcFace~\cite{arcface}, and the entire procedure is repeated with
+AdaFace~\cite{adaface} and LVFace~\cite{lvface} so that the assessment does not
+depend on a single recognition model; images in which no face is detected are
+excluded. Distances between embeddings are measured as cosine distances, and
+every synthetic and every held-out image is characterized by its distance to
+the nearest training image of the same cohort. Rather than fixing a
+verification threshold in advance, the threshold is read off the held-out
+distribution: for a given percentile $p$, it is set to the $p$-th percentile of
+the held-out nearest-neighbour distances, so that the operating point
+corresponds to a fixed false-acceptance rate among real images of that cohort.
+The proportion of synthetic images falling below this threshold is recorded at
+$p = 1$, $2$, $5$, $10$ and $20$. The ordinal behaviour of each embedding model
+is verified on the same images using triplets in which the positive pair
+consists of two images of one patient acquired less than half a year apart and
+the negative is an image of a different patient from the same cohort, checking
+in each triplet whether the positive pair is the closer of the two.
+
+The appearance assessment follows the same design with a perceptual rather
+than an identity metric. LPIPS distances~\cite{lpips} are computed on images
+resized to $256\times256$, and each synthetic and held-out image is compared
+exhaustively against every training image of its cohort, retaining the
+smallest distance; thresholds are again taken from the percentiles of the
+held-out distribution. Both assessments are finally summarized by the nearest
+neighbour adversarial accuracy~\cite{nnaa}. For two sets of images, the
+adversarial accuracy is the proportion of images whose nearest neighbour in
+the other set is farther away than their nearest neighbour within their own
+set, averaged over the two directions, so that a value of one half indicates
+that the two sets cannot be distinguished by proximity. It is evaluated
+between the synthetic images and the training partition, and between the
+synthetic images and the held-out partition, and the difference between the
+two, termed the privacy loss, expresses whether synthetic images lie closer to
+the training data than held-out real images of the same cohorts do. The
+quantity is computed with embedding distances and with LPIPS distances, pooled
+across cohorts, and confidence intervals are obtained by resampling images
+with replacement over <UNVERIFIED> bootstrap replicates.
