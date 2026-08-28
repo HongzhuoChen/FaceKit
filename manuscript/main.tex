@@ -9,20 +9,45 @@
 \usepackage{subcaption}
 \usepackage{booktabs}
 \usepackage{placeins}
+
+\usepackage[blocks]{authblk}
+
 \usepackage{hyperref}
 
 \graphicspath{{image/}}
 
-\title{FaceKit: a lightweight toolkit for interpretable facial phenotyping in rare diseases}
+\title{FaceKit: a Lightweight Toolkit for Interpretable Facial Phenotyping in Rare Diseases}
 
-\author{
-Hongzhuo Chen$^{1}$, Zhanliang Wang$^{2}$, Other authors$^{3}$, Kai Wang$^{4,*}$ \\[6pt]
-\small $^{1}$Department, Organization, Street, Postcode, State, Country \\
-\small $^{2}$Department, Organization, Street, Postcode, State, Country \\
-\small $^{3}$Department, Organization, Street, Postcode, State, Country \\
-\small $^{4}$Department, Organization, Street, Postcode, State, Country \\[4pt]
-\small $^{*}$Corresponding author: \href{mailto:email-id.com}{email-id.com}
-}
+\renewcommand\Authfont{\normalsize}
+\renewcommand\Affilfont{\small}
+\setlength{\affilsep}{0.4em}
+
+\author[1,2]{Hongzhuo Chen}
+\author[1,2]{Zhanliang Wang}
+\author[3,4]{Florent Pollet}
+\author[3,4,5]{Gamze Gürsoy}
+\author[1,6,*]{Kai Wang}
+
+\affil[1]{Raymond G. Perelman Center for Cellular and Molecular Therapeutics,
+Children's Hospital of Philadelphia, Philadelphia, USA}
+
+\affil[2]{Applied Mathematics and Computational Science Graduate Program,
+University of Pennsylvania, Philadelphia, USA}
+
+\affil[3]{Department of Biomedical Informatics, Columbia University,
+NYC, USA}
+
+\affil[4]{New York Genome Center, NYC, USA}
+
+\affil[5]{Department of Computer Science, Columbia University,
+NYC, USA}
+
+\affil[6]{Department of Pathology and Laboratory Medicine,
+Perelman School of Medicine, University of Pennsylvania,
+Philadelphia, PA 19104, USA}
+
+\affil[*]{Corresponding author:
+\href{mailto:wangk@chop.edu}{\texttt{wangk@chop.edu}}}
 
 \date{}
 
@@ -39,17 +64,24 @@ Facial phenotyping plays an important role in the diagnosis and clinical charact
 \noindent\textbf{Keywords:} facial phenotyping, rare disease, facial photo, landmarking, privacy evaluation
 
 \section{Introduction}
-Facial morphology is an important component of phenotypic characterization in many rare genetic diseases and can provide useful signals for disease recognition alongside other clinical and genetic information. Traditionally, these patterns have been assessed through expert observation and described using standardized phenotype terminology such as the Human Phenotype Ontology (HPO). More recently, neural-network and vision-language models have also used facial images to support rare-disease recognition and the identification of facial phenotype terms.
+Facial morphology is an important component of phenotypic characterization in many rare genetic diseases and can provide useful signals for disease recognition alongside other clinical and genetic information. Traditionally, these patterns have been assessed through expert observation and described using standardized phenotype terminology such as the Human Phenotype Ontology (HPO). More recently, neural-network \cite{DeepGestalt,hsieh2022gestaltmatcher} and vision-language models \cite{mint, gestaltmml} have also used facial images to support rare-disease recognition and the identification of facial phenotype terms.
 
 However, existing approaches do not fully address the need for quantitative and interpretable facial phenotyping. HPO terms provide a standardized vocabulary, but many facial features are still evaluated qualitatively and are not directly linked to reproducible measurements from images. Similarly, learning-based models commonly produce disease rankings, probabilities, or phenotype labels, while the facial characteristics underlying these outputs are often difficult to express. General-purpose facial landmark tools provide image coordinates, but researchers must still define their own normalization procedures, geometric measurements, feature-selection rules, and output formats. This fragmentation makes it difficult to compare facial morphology consistently across patients, diseases, and study cohorts.
 
 To address this gap, we developed FaceKit, a lightweight and interpretable toolkit that converts facial images into structured quantitative representations of facial morphology. FaceKit integrates facial landmark extraction and visualization, frontal-pose quality filtering, geometric normalization, and cohort average-face generation. It computes 120 interpretable measurements across major facial regions and supports disease-aware feature selection for downstream cohort analysis. FaceKit also provides an extensible framework through which researchers can define additional geometric features while maintaining a unified output representation. Together, these functions provide a reproducible pipeline for transforming facial images into quantitative phenotypic features for rare-disease research.
 
 \section{Methods}
+
+FaceKit provides an integrated workflow for processing, quantitatively characterizing, and augmenting rare-disease facial image datasets. The workflow begins with image preprocessing and landmark-based facial phenotyping. In addition to producing interpretable geometric measurements for individual- and cohort-level analysis, this stage generates standardized facial images, landmark representations, and structured features that can be used as inputs for downstream machine-learning and generative-model development. Building on these standardized images, FaceKit supports the training and application of cohort-specific generative models to produce synthetic facial images for data augmentation and methodological development. The generated images can subsequently be processed through the same phenotyping workflow to evaluate whether they preserve the geometric characteristics of the corresponding disease cohorts. Finally, because the pre-trained generators are intended for distribution and reuse, FaceKit includes a privacy-assessment framework that evaluates whether synthetic images reproduce identifiable information or exhibit excessive similarity to the real patient photographs used for training.
+
+
 \subsection{Image Preprocessing}
 
-FaceKit accepts facial images provided either in a single directory or in a hierarchical directory structure organized by disease cohort. Each image is first processed using MediaPipe Face Landmarker to detect 478 three-dimensional facial landmarks and estimate a facial transformation matrix. The transformation matrix is converted into yaw, pitch, and roll angles to assess whether the image is sufficiently frontal for subsequent geometric analysis. By default, images with an absolute yaw or pitch greater than $15^{\circ}$, or an absolute roll greater than $10^{\circ}$, are marked as non-frontal. This quality-control procedure reduces variation introduced by head pose and identifies images for which facial measurements may be unreliable. For each image, FaceKit stores the landmark coordinates together with the image identifier and dimensions. The extracted data can be saved as individual JSON files or combined into a JSONL file for batch processing and downstream phenotype extraction.
+FaceKit accepts facial images provided either in a single directory or in a hierarchical directory structure organized by disease cohort. Each image is first processed using MediaPipe Face Landmarker to detect 478 two-dimensional facial landmarks and estimate a facial transformation matrix. The transformation matrix is converted into yaw, pitch, and roll angles to assess whether the image is sufficiently frontal for subsequent geometric analysis. By default, images with an absolute yaw or pitch greater than $15^{\circ}$, or an absolute roll greater than $10^{\circ}$, are marked as non-frontal. This quality-control procedure reduces variation introduced by head pose and identifies images for which facial measurements may be unreliable. For each image, FaceKit stores the landmark coordinates together with the image identifier and dimensions. The extracted data can be saved as individual JSON files or combined into a JSONL file for batch processing and downstream phenotype extraction.
 
+\subsection{Landmark visualization}
+
+FaceKit provides visualization functions for inspecting facial landmark extraction results on individual images. Detected landmarks can be rendered as a connected facial mesh or as landmark-only points overlaid on the original image. Users can optionally display specific landmark groups, including facial contours and iris landmarks, to examine particular facial regions in greater detail. These visualizations support manual inspection of landmark placement, identification of potential detection failures, and verification of image suitability before downstream geometric phenotype extraction.
 
 \subsection{Geometric Phenotype Extraction}
 
@@ -117,7 +149,7 @@ FaceKit generates average-face representations to summarize shared facial morpho
 FaceKit additionally supports the generation of synthetic facial images.
 Two usage modes are provided. Users with a sufficiently large image
 collection can train a generator on their own cohort and sample from the
-resulting weights, while users without access to such data can sample
+resulting weights, while other users can sample
 directly from generators pre-trained on ten rare-disease cohorts and
 distributed with FaceKit.
 
@@ -220,11 +252,9 @@ confidence intervals are obtained by resampling images with replacement.
 % TODO: state the bootstrap replicate count once the face_audit run log is available
 % (the shipped config default of 10 is a smoke-test value).
 
-\subsection{Landmark visualization}
-
-FaceKit provides visualization functions for inspecting facial landmark extraction results on individual images. Detected landmarks can be rendered as a connected facial mesh or as landmark-only points overlaid on the original image. Users can optionally display specific landmark groups, including facial contours and iris landmarks, to examine particular facial regions in greater detail. These visualizations support manual inspection of landmark placement, identification of potential detection failures, and verification of image suitability before downstream geometric phenotype extraction.
-
 \section{Results}
+
+We evaluated FaceKit along the three major components of its workflow. First, we assessed whether the landmark-derived geometric measurements captured facial phenotypes represented by clinically annotated HPO terms and whether these measurements supported interpretable comparisons across patients and disease cohorts. Second, we examined whether the cohort-specific generative models preserved the geometric phenotype distributions of the real images used for training, both within individual disease cohorts and in the differences that distinguish one cohort from another. Finally, because the pre-trained generators are intended for distribution and reuse, we evaluated whether their synthetic outputs reproduced the identities or visual appearance of the real patient photographs used during training. Together, these analyses assess the phenotypic validity, generative fidelity, and privacy characteristics of the FaceKit workflow.
 
 \subsection{Quantitative measurements reproduce annotated facial phenotypes}
 
@@ -246,17 +276,16 @@ annotation; the remaining 13 had no annotated patient anywhere in the cohort and
 could not be assessed. Across the 84 assessable terms, the mapped measurement
 deviated from the healthy reference in the direction predicted by HPO for 62
 (73.8\%; binomial $p=1.5\times10^{-5}$), with a mean absolute deviation of 0.47
-reference standard deviations. Restricting attention to the 78 terms carried by
-enough patients to admit a statistical test, 33 reached significance after
-Benjamini--Hochberg correction, 39 did not separate from the reference, and 6
-deviated significantly in the direction opposite to the one HPO predicts. Agreement
-was not driven by the terms with the most annotation: terms carried by 10--29
-patients agreed as often as those carried by 30 or more (82.4\% versus 79.5\%).
+reference standard deviations. The remaining 16 terms showed no clear directional deviation and were considered inconclusive, whereas six deviated in the opposite direction. Among the terms with a clear directional signal, FaceKit agreed with the HPO-predicted direction for 62 of 68 terms (91.2\%).
 
-Hypertelorism illustrates how an individual measurement can be read. The term is
-mapped to the inter-pupillary distance normalized by bizygomatic width, the ratio
-of the distance between the two iris centres to the distance between the two
-zygomatic points (Fig.~\ref{fig:ipd}\subref{fig:ipd-crouzon},\subref{fig:ipd-costello}). Across the 238 patients annotated with the term,
+% Restricting attention to the 78 terms carried by
+% enough patients to admit a statistical test, 33 reached significance after
+% Benjamini--Hochberg correction, 39 did not separate from the reference, and 6
+% deviated significantly in the direction opposite to the one HPO predicts. Agreement
+% was not driven by the terms with the most annotation: terms carried by 10--29
+% patients agreed as often as those carried by 30 or more (82.4\% versus 79.5\%).
+
+To illustrate how the quantitative facial phenotyping module operates, we used hypertelorism in Crouzon syndrome as a case study. Hypertelorism is represented in FaceKit by the inter-pupillary distance normalized by bizygomatic width, calculated as the ratio of the distance between the two iris centres to the distance between the two zygomatic points (Fig.~\ref{fig:ipd}\subref{fig:ipd-crouzon},\subref{fig:ipd-costello}). This example demonstrates how facial landmarks are converted into an interpretable geometric measurement that can be evaluated at both the individual-patient and disease-cohort levels. Across the 238 patients annotated with the term,
 this ratio was elevated by 1.04 reference standard deviations
 ($q=4.2\times10^{-22}$), and among all 120 measurements it was the most
 deviant in these same patients, indicating that the signal is specific to the
@@ -268,21 +297,21 @@ distribution, with the two landmark pairs entering the ratio drawn on the image.
 
 \begin{figure}[t]
   \centering
-  \begin{subfigure}[b]{0.31\linewidth}
+  \begin{subfigure}[b]{0.27\linewidth}
     \centering
     \includegraphics[width=\linewidth]{image/F1a_face_crouzon}
     \caption{}
     \label{fig:ipd-crouzon}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[b]{0.31\linewidth}
+  \begin{subfigure}[b]{0.27\linewidth}
     \centering
     \includegraphics[width=\linewidth]{image/F1b_face_costello}
     \caption{}
     \label{fig:ipd-costello}
   \end{subfigure}
   \hfill
-  \begin{subfigure}[b]{0.31\linewidth}
+  \begin{subfigure}[b]{0.4\linewidth}
     \centering
     \includegraphics[width=\linewidth]{image/F1c_ipd_bars}
     \caption{}
@@ -620,6 +649,33 @@ of facial morphology than the real population presents.
 
 \FloatBarrier
 
+\begin{table}[!htbp]
+  \centering
+  \caption{\textbf{Synthetic images flagged against a real-image reference
+  rate.} Each row fixes an operating point by taking the threshold from the
+  $p$-th percentile of the distances between held-out real images and the
+  training partition, so that $p$ is the false acceptance rate the threshold
+  produces among real images of the same cohort; entries give the percentage of
+  the 999 synthetic images falling below that threshold. Thresholds are cosine
+  distances for the three recognition models and LPIPS distances for the
+  perceptual metric. Values at or below $p$ indicate no excess over the
+  reference.}
+  \label{tab:privacy-far}
+  \begin{tabular}{cccccccc}
+    \toprule
+    & \multicolumn{3}{c}{Identity (\% flagged)} & \multicolumn{3}{c}{Threshold} & Appearance \\
+    \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-8}
+    $p$ (\%) & ArcFace & AdaFace & LVFace & ArcFace & AdaFace & LVFace & LPIPS (\% flagged) \\
+    \midrule
+     1 &  0.10 &  0.10 & 0.00 & 0.3758 & 0.3708 & 0.5146 &  3.8 \\
+     2 &  0.50 &  0.20 & 0.00 & 0.4115 & 0.3879 & 0.5450 &  7.7 \\
+     5 &  1.30 &  0.70 & 1.50 & 0.4386 & 0.4411 & 0.5946 & 14.1 \\
+    10 &  5.01 &  4.00 & 2.60 & 0.4750 & 0.5027 & 0.6249 & 23.0 \\
+    20 & 15.02 & 11.61 & 6.71 & 0.5274 & 0.5504 & 0.6673 & 36.1 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{Synthetic images do not reproduce training identities}
 
 % Source of numbers: results/Privacy Analysis Summary.pptx (2026-07-14) and the
@@ -652,6 +708,8 @@ calibrated, and it does: each same-person pair contributes two anchor orderings,
 and in 182 of these 186 comparisons (97.8\%) the distance of the same-person
 pair was smaller than every different-person distance it was compared against.
 
+
+
 Against this reference the synthetic images carried no excess identity signal
 (Table~\ref{tab:privacy-far},
 Fig.~\ref{fig:privacy}\subref{fig:privacy-far}). At an operating point
@@ -666,70 +724,12 @@ recognition models, and at every operating point examined, sampling from the
 released generators is therefore not more likely to produce a face matching a
 training patient than drawing another real photograph of the same syndrome is.
 
-The picture on the appearance axis is different, and the two must not be
-conflated. LPIPS distances between images of one patient and between images of
-different patients are almost indistinguishable, overlapping by 0.8438 across
-897 same-person and 78,388 different-person pairs
-(Fig.~\ref{fig:privacy}\subref{fig:privacy-kde-lpips}); the metric responds to
-texture, pose and illumination rather than to identity. Measured with it, the
-synthetic images were systematically closer to the training photographs than the
-held-out images were, and by a wide margin: 14.1\% of synthetic images fell
-below the threshold set at a 5\% reference rate, and 36.1\% below the threshold
-set at 20\% (Fig.~\ref{fig:privacy}\subref{fig:privacy-far-lpips}). % read off
-A generator trained on a cohort reproduces the acquisition characteristics of
-that cohort, and the synthetic images inherit them. Because the same metric
-cannot tell two photographs of one patient from photographs of two different
-patients, this proximity describes the distribution the images were drawn from
-and not the individuals within it.
-
-Both axes are summarized by the nearest neighbour adversarial accuracy.
-Computed on embeddings, the privacy loss was $-0.000$ for ArcFace, $-0.002$ for
-AdaFace and $-0.006$ for LVFace, with bootstrap confidence intervals that
-included zero in all three cases; % read off
-synthetic images lie no closer to the training partition than to the held-out
-partition. Computed on LPIPS distances the privacy loss was $+0.046$ with a
-confidence interval of $[0.031, 0.093]$ that excludes zero, % read off
-reproducing in a single number the divergence between the two axes. One feature
-of these values deserves comment: the adversarial accuracies themselves ranged
-from 0.947 to 0.980 on embeddings, % read off
-far above the value of one half that would indicate two indistinguishable sets,
-because synthetic faces are globally separable from real ones in recognition
-embedding space. The absolute level therefore carries no privacy
-interpretation here, and only the difference between the two comparisons does.
-
-\begin{table}[t]
-  \centering
-  \caption{\textbf{Synthetic images flagged against a real-image reference
-  rate.} Each row fixes an operating point by taking the threshold from the
-  $p$-th percentile of the distances between held-out real images and the
-  training partition, so that $p$ is the false acceptance rate the threshold
-  produces among real images of the same cohort; entries give the percentage of
-  the 999 synthetic images falling below that threshold. Thresholds are cosine
-  distances for the three recognition models and LPIPS distances for the
-  perceptual metric. Values at or below $p$ indicate no excess over the
-  reference.}
-  \label{tab:privacy-far}
-  \begin{tabular}{cccccccc}
-    \toprule
-    & \multicolumn{3}{c}{Identity (\% flagged)} & \multicolumn{3}{c}{Threshold} & Appearance \\
-    \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-8}
-    $p$ (\%) & ArcFace & AdaFace & LVFace & ArcFace & AdaFace & LVFace & LPIPS (\% flagged) \\
-    \midrule
-     1 &  0.10 &  0.10 & 0.00 & 0.3758 & 0.3708 & 0.5146 &  3.8 \\
-     2 &  0.50 &  0.20 & 0.00 & 0.4115 & 0.3879 & 0.5450 &  7.7 \\
-     5 &  1.30 &  0.70 & 1.50 & 0.4386 & 0.4411 & 0.5946 & 14.1 \\
-    10 &  5.01 &  4.00 & 2.60 & 0.4750 & 0.5027 & 0.6249 & 23.0 \\
-    20 & 15.02 & 11.61 & 6.71 & 0.5274 & 0.5504 & 0.6673 & 36.1 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
 % Panels are the face_audit plots embedded in results/Privacy Analysis
 % Summary.pptx, re-exported by manuscript/make_privacy_panels.py. Regenerate as
 % vector PDF from the face_audit outputs when the raw result files are
 % available. The overlap-band example panel from slide 7 is deliberately not
 % used: it shows identifiable patient photographs.
-\begin{figure}[t]
+\begin{figure}[h]
   \centering
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
@@ -777,7 +777,37 @@ interpretation here, and only the difference between the two comparisons does.
   \label{fig:privacy}
 \end{figure}
 
-\FloatBarrier
+The picture on the appearance axis is different, and the two must not be
+conflated. LPIPS distances between images of one patient and between images of
+different patients are almost indistinguishable, overlapping by 0.8438 across
+897 same-person and 78,388 different-person pairs
+(Fig.~\ref{fig:privacy}\subref{fig:privacy-kde-lpips}); the metric responds to
+texture, pose and illumination rather than to identity. Measured with it, the
+synthetic images were systematically closer to the training photographs than the
+held-out images were, and by a wide margin: 14.1\% of synthetic images fell
+below the threshold set at a 5\% reference rate, and 36.1\% below the threshold
+set at 20\% (Fig.~\ref{fig:privacy}\subref{fig:privacy-far-lpips}). % read off
+A generator trained on a cohort reproduces the acquisition characteristics of
+that cohort, and the synthetic images inherit them. Because the same metric
+cannot tell two photographs of one patient from photographs of two different
+patients, this proximity describes the distribution the images were drawn from
+and not the individuals within it.
+
+Both axes are summarized by the nearest neighbour adversarial accuracy.
+Computed on embeddings, the privacy loss was $-0.000$ for ArcFace, $-0.002$ for
+AdaFace and $-0.006$ for LVFace, with bootstrap confidence intervals that
+included zero in all three cases; % read off
+synthetic images lie no closer to the training partition than to the held-out
+partition. Computed on LPIPS distances the privacy loss was $+0.046$ with a
+confidence interval of $[0.031, 0.093]$ that excludes zero, % read off
+reproducing in a single number the divergence between the two axes. One feature
+of these values deserves comment: the adversarial accuracies themselves ranged
+from 0.947 to 0.980 on embeddings, % read off
+far above the value of one half that would indicate two indistinguishable sets,
+because synthetic faces are globally separable from real ones in recognition
+embedding space. The absolute level therefore carries no privacy
+interpretation here, and only the difference between the two comparisons does.
+
 
 \section{Discussion}
 
