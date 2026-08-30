@@ -1,0 +1,7 @@
+centred,rdface,gmdb,n_rdface,n_gmdb,r_true,r_best,best,rank,n_cohorts
+False,ANG,Angelman_syndrome,3,116,0.3904070518634373,0.4560465333667306,Ogden_syndrome,5,50
+False,JOUA,Joubert_syndrome_1,3,35,0.23579663167651765,0.3295617149053132,Smith-Lemli-Opitz_syndrome,4,50
+False,MOW,Mowat-Wilson_syndrome,5,59,0.5229168736773985,0.5922654842010084,cutis_laxa_autosomal_dominant_1,4,50
+True,ANG,Angelman_syndrome,3,116,0.3979339380731204,0.4966993138435924,intellectual_disability_autosomal_dominant_50,3,50
+True,JOUA,Joubert_syndrome_1,3,35,0.37966520211859117,0.6054840901438273,Smith-Lemli-Opitz_syndrome,3,50
+True,MOW,Mowat-Wilson_syndrome,5,59,0.36800776558018133,0.6402241561435927,cutis_laxa_autosomal_dominant_1,6,50
