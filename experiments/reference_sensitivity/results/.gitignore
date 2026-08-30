@@ -1,0 +1,6 @@
+# Regenerable intermediates, too large to track.
+# reference_224.csv        <- extract_reference_224.py
+# resolution_drift_long.csv <- resolution_drift.py
+reference_224.csv
+resolution_drift_long.csv
+*.log
