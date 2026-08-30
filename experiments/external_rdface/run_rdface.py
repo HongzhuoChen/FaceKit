@@ -22,6 +22,11 @@ different diseases? Two confounds are controlled.
                 with a difference hash and one image of each pair is dropped.
                 This bounds the threat; it cannot remove it, because two
                 different photographs of one patient are not near-duplicates.
+  resolution    RDFace short sides run from 41 px, and resolution_drift.py
+                shows the catalogue degrading below about 128 px. The test is
+                therefore repeated behind a ladder of resolution gates, up to
+                the 224 px the GMDB patients are measured at, to check that the
+                separation is not produced by the unreliable tail.
 
 Usage:
     PYTHONPATH=src python experiments/external_rdface/run_rdface.py \
@@ -137,14 +142,20 @@ def main() -> None:
           f" -> {len(drop)} images dropped")
 
     features = [c for c in feats_df.columns if c not in NON_FEATURE]
+    subsets = [("all frontal images", df),
+               ("near-duplicates removed", df[~df.image_id.isin(drop)])]
+    subsets += [(f"short side >= {t} px", df[df.short_side >= t])
+                for t in (128, 160, 224)]
+
     results = []
-    for label, subset in [("all frontal images", df),
-                          ("near-duplicates removed", df[~df.image_id.isin(drop)])]:
+    for label, subset in subsets:
         sub = subset.groupby("disease").filter(lambda g: len(g) >= MIN_PER_DISEASE)
         X = sub[features].to_numpy(float)
         X = (X - X.mean(0)) / X.std(0)
         labels = sub.disease.to_numpy()
-        strata = (pd.qcut(np.log10(sub.short_side), 4, labels=False).astype(str)
+        bins = min(4, sub.short_side.nunique())
+        strata = (pd.qcut(np.log10(sub.short_side), bins, labels=False,
+                          duplicates="drop").astype(str)
                   + "_" + sub.grey.astype(str)).to_numpy()
         obs, p, mu, sd = permutation_test(X, labels, strata, rng)
         z = (obs - mu) / sd
