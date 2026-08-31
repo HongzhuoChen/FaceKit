@@ -12,6 +12,11 @@ RDFace profile is correlated against all 50 GMDB cohort profiles. What is
 tested is the RANK of the correct cohort, which is uniform on 1..50 under the
 null however noisy the profile is.
 
+RDFace carries no per-image age, so age cannot enter the comparison directly.
+Its dataset-level average is 6.36 years against a GMDB median of 6.0, so the
+two cohorts are close enough overall that a difference in age composition is
+unlikely to drive the agreement; per-disease age is still uncontrolled.
+
 Every patient group sits at a common offset from the healthy reference, because
 patient photographs differ from Flickr controls in ways that have nothing to do
 with the diagnosis. Left in, that offset makes every correlation high and the

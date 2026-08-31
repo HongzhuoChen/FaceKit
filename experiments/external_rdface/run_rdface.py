@@ -3,7 +3,10 @@
 RDFace is an independent rare-disease image collection: 103 diseases, 456
 images, only three of its diseases overlap the 50 GMDB cohorts, and its images
 are far more heterogeneous (short side 41 to 837 px, a quarter effectively
-grayscale). It carries no HPO annotations and no patient identifiers, so it
+grayscale). Its images were already screened as frontal portraits by the
+curators under clinical supervision, so the share FaceKit's pose gate rejects
+measures disagreement with a human frontality judgement rather than the share
+of unusable images. It carries no HPO annotations and no patient identifiers, so it
 cannot test the term-level claims of Section 3.1. What it can test is whether
 the 120 measurements separate diseases at all on a corpus the pipeline was
 never tuned against.
@@ -118,8 +121,11 @@ def main() -> None:
     df = feats_df.merge(props, on="image_id", how="left")
 
     print(f"landmarked images     : {len(feats_df)}")
+    rejected = len(feats_df) - int(df.frontal_ok.sum())
     print(f"passing the pose gate : {int(df.frontal_ok.sum())} "
           f"({100 * df.frontal_ok.mean():.1f}%)")
+    print(f"  rejected as non-frontal, though curated as frontal portraits: "
+          f"{rejected} ({100 * rejected / len(feats_df):.1f}%)")
     print(f"diseases retaining >=1: {df[df.frontal_ok == True].disease.nunique()}")  # noqa: E712
 
     df = df[df.frontal_ok == True].copy()  # noqa: E712
