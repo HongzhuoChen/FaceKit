@@ -21,3 +21,10 @@ DEFAULT_FEATURE_MAPPING = Path(
 # corrected by experiments/feature_validity. An out-of-tree copy would silently
 # revert them on the next run of hpo_predict/step2_build_labels.py.
 DEFAULT_HPO_CODES = Path(__file__).resolve().parents[3].parent / "labels" / "hpo_direction_codes.csv"
+
+# Normative reference distributions shipped with the package: per-feature mean,
+# SD and n over the 886 FairFace control images that pass the frontal-pose gate
+# (of 2,051 sampled across three ancestry groups). Built by
+# ``scripts/build_reference.py``; this is the same reference the manuscript
+# scores patients against.
+DEFAULT_REFERENCE = Path(__file__).resolve().parents[2] / "data" / "reference_fairface.csv"

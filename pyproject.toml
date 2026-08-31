@@ -52,3 +52,6 @@ facekit = "facekit.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+facekit = ["data/*.csv"]

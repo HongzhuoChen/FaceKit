@@ -56,9 +56,9 @@ Philadelphia, PA 19104, USA}
 \maketitle
 
 \begin{abstract}
-% Superseded first version of the abstract, kept here for reference:
-% Facial phenotypes are important indicators in the characterization of many rare genetic diseases. Although the Human Phenotype Ontology provides standardized terminology for describing facial phenotypic features, many of these features lack standardized and reproducible methods for quantitative measurement from facial images. FaceKit is a lightweight interpretable toolkit that converts facial images into structured, quantitative representations of facial morphology. It integrates facial landmark extraction, pose quality filtering, geometric normalization, landmark visualization, cohort average-face generation, and 120 facial measurements, while supporting disease-aware feature selection and user-defined feature extensions.
-Facial phenotyping plays an important role in the diagnosis and clinical characterization of rare genetic diseases, many of which are associated with recognizable craniofacial features. However, traditional approaches for describing facial morphology rely largely on qualitative clinical observation and free-text descriptions, which are often subjective, non-standardized, and difficult to reproduce across observers and institutions. Although the Human Phenotype Ontology (HPO) provides controlled terms for describing dysmorphic facial features, these terms are typically categorical rather than quantitative and may vary depending on examiner experience and interpretation. Here, we present FaceKit, a computational framework for quantitative facial phenotyping from frontal facial photographs. FaceKit extracts standardized measurements of facial landmarks and derived 120 morphological features, then reports feature-level z-scores representing deviation from population reference distributions. To support ancestry-aware phenotyping, we constructed reference models using the FairFace dataset as a control population spanning diverse ancestry groups. We further evaluated FaceKit using multiple rare disease facial phenotype resources, including GMDB, RDFace, and an internal clinical cohort. In addition to quantitative facial analysis, FaceKit includes synthetic facial image generation to support rare disease model development and data augmentation. We also performed privacy evaluation to assess whether synthetic images reveal identifiable information from real patient photographs and could therefore compromise patient privacy. Across disease case studies, FaceKit-derived quantitative measurements captured known facial features associated with rare genetic disorders and provided objective support for clinical phenotype interpretation. We further demonstrate that FaceKit can assist human reviewers in generating HPO terms and text-based descriptions of facial features from patient photographs, improving consistency and reproducibility of facial phenotype annotation. Together, these results establish FaceKit as a useful tool for rare disease research, quantitative dysmorphology, and AI-assisted phenotyping. By converting facial morphology into standardized, quantitative, and interpretable features, FaceKit has the potential to improve rare disease diagnosis, support genotype-phenotype studies, and enable more reproducible clinical characterization across diverse patient populations.
+Facial phenotyping plays an important role in the diagnosis and clinical characterization of rare genetic diseases, many of which are associated with recognizable craniofacial features. However, traditional approaches for describing facial morphology rely largely on qualitative clinical observation and free-text descriptions, which are often subjective, non-standardized, and difficult to reproduce across observers and institutions. Although the Human Phenotype Ontology (HPO) provides controlled terms for describing dysmorphic facial features, these terms are typically categorical rather than quantitative and may vary depending on examiner experience and interpretation. Here, we present FaceKit, a computational framework for quantitative facial phenotyping from frontal facial photographs. FaceKit extracts standardized measurements of facial landmarks and derived 120 morphological features, then reports feature-level z-scores representing deviation from population reference distributions. The reference distributions are built from the FairFace dataset as a control population spanning diverse ancestry groups, and are distributed with the toolkit so that measurements are reported on the same scale across studies. We evaluated FaceKit on a curated subset of the GestaltMatcher Database covering 50 rare-disease cohorts. In addition to quantitative facial analysis, FaceKit includes synthetic facial image generation to support rare disease model development and data augmentation. We also performed privacy evaluation to assess whether synthetic images reveal identifiable information from real patient photographs and could therefore compromise patient privacy. Across disease case studies, FaceKit-derived quantitative measurements captured known facial features associated with rare genetic disorders and provided objective support for clinical phenotype interpretation.
+% FIXME: no Results section supports the following sentence yet (HPO-assisted annotation).
+We further demonstrate that FaceKit can assist human reviewers in generating HPO terms and text-based descriptions of facial features from patient photographs, improving consistency and reproducibility of facial phenotype annotation. Together, these results establish FaceKit as a useful tool for rare disease research, quantitative dysmorphology, and AI-assisted phenotyping. By converting facial morphology into standardized, quantitative, and interpretable features, FaceKit has the potential to improve rare disease diagnosis, support genotype-phenotype studies, and enable more reproducible clinical characterization across diverse patient populations.
 \end{abstract}
 
 \noindent\textbf{Keywords:} facial phenotyping, rare disease, facial photo, landmarking, privacy evaluation
@@ -68,7 +68,7 @@ Facial morphology is an important component of phenotypic characterization in ma
 
 However, existing approaches do not fully address the need for quantitative and interpretable facial phenotyping. HPO terms provide a standardized vocabulary, but many facial features are still evaluated qualitatively and are not directly linked to reproducible measurements from images. Similarly, learning-based models commonly produce disease rankings, probabilities, or phenotype labels, while the facial characteristics underlying these outputs are often difficult to express. General-purpose facial landmark tools provide image coordinates, but researchers must still define their own normalization procedures, geometric measurements, feature-selection rules, and output formats. This fragmentation makes it difficult to compare facial morphology consistently across patients, diseases, and study cohorts.
 
-To address this gap, we developed FaceKit, a lightweight and interpretable toolkit that converts facial images into structured quantitative representations of facial morphology. FaceKit integrates facial landmark extraction and visualization, frontal-pose quality filtering, geometric normalization, and cohort average-face generation. It computes 120 interpretable measurements across major facial regions and supports disease-aware feature selection for downstream cohort analysis. FaceKit also provides an extensible framework through which researchers can define additional geometric features while maintaining a unified output representation. Together, these functions provide a reproducible pipeline for transforming facial images into quantitative phenotypic features for rare-disease research.
+To address this gap, we developed FaceKit, a lightweight and interpretable toolkit that converts facial images into structured quantitative representations of facial morphology. FaceKit integrates facial landmark extraction and visualization, frontal-pose quality filtering, geometric normalization, and cohort average-face generation. It computes 120 interpretable measurements across major facial regions, reports each of them as a $z$-score against a normative reference distribution distributed with the toolkit, and supports disease-aware feature selection for downstream cohort analysis. FaceKit also provides an extensible framework through which researchers can define additional geometric features while maintaining a unified output representation. Together, these functions provide a reproducible pipeline for transforming facial images into quantitative phenotypic features for rare-disease research.
 
 \section{Methods}
 
@@ -116,7 +116,7 @@ fixed canonical-face table of 478 constants, the same table for every image,
 rather than from the per-image $z$ that the landmark detector returns
 (Fig.~\ref{fig:posecorr-mech}). That per-image estimate is a by-product of
 fitting a supervised mesh, not a depth measurement: across the 4,559 images used
-here it correlates with the mean-face depth profile at a median $r=0.95$ and only
+here it correlates with the mean-face depth profile at a median $r=0.94$ and only
 17.8\% of its energy is image-specific. Reading it back therefore injects
 photograph-specific variance into the features, and doing so measurably reduces
 the intra-patient reliability of the resulting measurements below the level
@@ -139,6 +139,36 @@ and feature being measured.
 Using the normalized landmarks, FaceKit calculates 120 interpretable geometric features describing regional and global facial morphology. These features include distances, ratios, angles, thickness measurements, curvature--related measurements, asymmetry indices, and facial proportions across the eyebrows, eyes, nose, philtrum, mouth and lips, chin and jaw, forehead, midface and cheeks, and the overall face. Each feature is defined using explicit landmark combinations and geometric operations, allowing its value to be directly inspected and compared across individuals or cohorts.
 
 For disease--organized datasets, FaceKit supports disease-aware feature selection to retain measurements considered relevant to the corresponding disease while preserving a consistent output structure across samples. User-provided disease names can be normalized to MONDO identifiers, with resolved mappings cached for reuse and candidate terms suggested when an exact match is unavailable. Features not selected for a given disease are represented as missing values rather than removed from the output table. FaceKit also allows users to specify additional landmark-based measurements through an input argument or a JSON configuration file, enabling custom features to be incorporated into the same structured feature representation.
+
+\subsection{Normative scoring}
+
+A geometric measurement expressed in its own units does not by itself indicate
+whether a face is unusual. FaceKit therefore reports every measurement as a
+$z$-score against a normative reference,
+
+\begin{equation}
+z = \frac{x - \mu_{\mathrm{ref}}}{\sigma_{\mathrm{ref}}},
+\end{equation}
+
+where $\mu_{\mathrm{ref}}$ and $\sigma_{\mathrm{ref}}$ are the mean and standard
+deviation of that measurement in a control population. A value is then read as
+the number of reference standard deviations by which a face departs from
+controls, which places measurements with different definitions and different
+natural scales on a common axis and makes them comparable to one another.
+
+The reference distributed with FaceKit was built from 2,051 FairFace images
+sampled across three ancestry groups, of which 886 pass the same frontal-pose
+gate that is applied to the faces being scored. Applying the gate on both sides
+is deliberate: an asymmetry or slant measurement responds to whatever residual
+head pose survives the gate, so a reference measured under looser acquisition
+conditions than the faces scored against it contributes an inflated standard
+deviation and understates their deviation. Users may supply their own control
+images instead, from which a reference is derived in the same way. Because the
+reference is pooled over ancestry groups rather than conditioned on them, a
+$z$-score expresses departure from the control population as a whole. A
+reference and the faces scored against it must be extracted under the same
+convention, since the pose correction described above fixes the meaning of all
+120 measurements simultaneously.
 
 \subsection{Average-face generation}
 
@@ -254,7 +284,7 @@ confidence intervals are obtained by resampling images with replacement.
 
 \section{Results}
 
-We evaluated FaceKit along the three major components of its workflow. First, we assessed whether the landmark-derived geometric measurements captured facial phenotypes represented by clinically annotated HPO terms and whether these measurements supported interpretable comparisons across patients and disease cohorts. Second, we examined whether the cohort-specific generative models preserved the geometric phenotype distributions of the real images used for training, both within individual disease cohorts and in the differences that distinguish one cohort from another. Finally, because the pre-trained generators are intended for distribution and reuse, we evaluated whether their synthetic outputs reproduced the identities or visual appearance of the real patient photographs used during training. Together, these analyses assess the phenotypic validity, generative fidelity, and privacy characteristics of the FaceKit workflow.
+We evaluated FaceKit along the major components of its workflow. First, we assessed whether the landmark-derived geometric measurements captured facial phenotypes represented by clinically annotated HPO terms and whether these measurements supported interpretable comparisons across patients and disease cohorts. Second, because every measurement is defined on pose-corrected landmarks, we compared the available ways of supplying the depth that the correction requires, using endpoints that need no annotation. Third, we examined whether the cohort-specific generative models preserved the geometric phenotype distributions of the real images used for training, both within individual disease cohorts and in the differences that distinguish one cohort from another. Finally, because the pre-trained generators are intended for distribution and reuse, we evaluated whether their synthetic outputs reproduced the identities or visual appearance of the real patient photographs used during training. Together, these analyses assess the phenotypic validity, measurement reliability, generative fidelity, and privacy characteristics of the FaceKit workflow.
 
 \subsection{Quantitative measurements reproduce annotated facial phenotypes}
 
@@ -276,14 +306,13 @@ annotation; the remaining 13 had no annotated patient anywhere in the cohort and
 could not be assessed. Across the 84 assessable terms, the mapped measurement
 deviated from the healthy reference in the direction predicted by HPO for 62
 (73.8\%; binomial $p=1.5\times10^{-5}$), with a mean absolute deviation of 0.47
-reference standard deviations. The remaining 16 terms showed no clear directional deviation and were considered inconclusive, whereas six deviated in the opposite direction. Among the terms with a clear directional signal, FaceKit agreed with the HPO-predicted direction for 62 of 68 terms (91.2\%).
-
-% Restricting attention to the 78 terms carried by
-% enough patients to admit a statistical test, 33 reached significance after
-% Benjamini--Hochberg correction, 39 did not separate from the reference, and 6
-% deviated significantly in the direction opposite to the one HPO predicts. Agreement
-% was not driven by the terms with the most annotation: terms carried by 10--29
-% patients agreed as often as those carried by 30 or more (82.4\% versus 79.5\%).
+reference standard deviations. Direction alone does not establish that a deviation is real, so the 78 terms
+carried by enough patients to admit a statistical test were examined separately.
+Of these, 39 separated from the reference after Benjamini--Hochberg correction,
+33 in the direction HPO predicts and 6 against it, while the remaining 39 did
+not separate from the reference at all. Agreement was not driven by the terms
+carrying the most annotation: terms carried by 10--29 patients agreed as often
+as those carried by 30 or more (82.4\% versus 79.5\%).
 
 To illustrate how the quantitative facial phenotyping module operates, we used hypertelorism in Crouzon syndrome as a case study. Hypertelorism is represented in FaceKit by the inter-pupillary distance normalized by bizygomatic width, calculated as the ratio of the distance between the two iris centres to the distance between the two zygomatic points (Fig.~\ref{fig:ipd}\subref{fig:ipd-crouzon},\subref{fig:ipd-costello}). This example demonstrates how facial landmarks are converted into an interpretable geometric measurement that can be evaluated at both the individual-patient and disease-cohort levels. Across the 238 patients annotated with the term,
 this ratio was elevated by 1.04 reference standard deviations
@@ -359,7 +388,7 @@ across the 15 asymmetry columns), and the FairFace controls carry more residual
 pose than the patient photographs do after the same gate (mean $|$yaw$|$
 $6.1^{\circ}$ against $4.1^{\circ}$). Stratified by $|$yaw$|$ the two populations
 almost coincide (0--3$^{\circ}$: 0.032 against 0.037; 3--6$^{\circ}$: 0.050
-against 0.055; 6--9$^{\circ}$: 0.074 against 0.081), so the apparent deficit is
+against 0.054; 6--9$^{\circ}$: 0.074 against 0.081), so the apparent deficit is
 the reference being measured under looser acquisition conditions, not a face that
 is genuinely more symmetric. Cheek area is normalized by the square of bizygomatic width, and the
 patients annotated with full cheeks did have broader and rounder faces
@@ -818,6 +847,39 @@ The privacy assessment supports distributing the pre-trained generators, but wit
 Several limitations should be considered. First, the reliability of every geometric measurement depends on the accuracy of the underlying facial landmark detector. General-purpose detectors are primarily trained on normative faces and may place landmarks according to learned expectations of typical facial structure when applied to rare-disease faces with substantially different morphology. Errors at this stage propagate directly into all downstream measurements and cannot be corrected through feature design alone. The same limitation applies to any phenotype defined by appearance rather than by shape, as the synophrys result above illustrates: a landmark mesh carries no photometric information and cannot represent hair distribution. Second, some feature failures arise from the choice of geometric formula or normalization scale, as in the full-cheeks result, indicating that normalization strategies may need to be selected separately for different measurements. Third, landmarks estimated from a single two-dimensional image remain sensitive to head pose, facial expression, image resolution, cropping, and acquisition conditions, despite the pose-quality filtering and geometric normalization implemented in FaceKit. These measurements should therefore not be interpreted as equivalent to calibrated three-dimensional facial measurements.
 
 Future development will focus on supporting landmark-detection models adapted to rare-disease faces, refining feature-specific normalization strategies, and incorporating complementary appearance-based representations for phenotypes that cannot be described by geometry alone. Validation in larger cohorts and across demographic and imaging subgroups will also be needed before quantitative ranges can be interpreted clinically.
+
+\section{Conclusion}
+
+FaceKit converts a frontal facial photograph into 120 interpretable geometric
+measurements and reports each of them on a normative scale, so that a facial
+phenotype can be recorded as a set of quantities whose definitions are open to
+inspection rather than as a free-text description or the output of a model that
+cannot be examined. On a curated subset of the GestaltMatcher Database, the
+measurement each HPO term is mapped to deviated from a healthy reference in the
+direction the term predicts for 62 of the 84 assessable terms, and the cases
+that did not are traceable to identifiable causes: a cohort-wide offset in the
+measurement itself, a normalization scale altered by the phenotype it is meant
+to measure, or a phenotype that resides in appearance rather than in shape. The
+comparison of pose-correction strategies shows that the depth the correction
+requires is better taken from a fixed canonical face than from the per-image
+depth the landmark detector returns, the latter lowering intra-patient
+reliability below the level obtained with no correction at all. The generators
+distributed with the toolkit reproduce the geometric phenotype of the cohorts
+they were trained on, both within a cohort and in what separates one cohort from
+another, while under-representing the variation inside a cohort; and their
+outputs carry no identity signal in excess of the rate that real held-out
+photographs of the same cohorts produce.
+
+Taken together, these results position FaceKit as an instrument for measurement
+rather than for diagnosis. A FaceKit measurement is a reproducible quantity with
+an explicit landmark definition and a stated reference, suitable for
+cohort-level comparison, for genotype--phenotype analysis, and as a structured
+input to downstream models; it is not a determination that an HPO term is
+present, and the quantitative ranges reported here are not yet calibrated for
+clinical interpretation. Reaching that point will require reference
+distributions validated across a wider range of ancestry, age, and acquisition
+conditions than the present controls span, alongside the improvements to
+landmark detection and to normalization set out above.
 
 \bibliographystyle{unsrt}
 \bibliography{references}

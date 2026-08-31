@@ -6,7 +6,7 @@ FaceKit takes face images of patients with rare genetic syndromes and produces:
 
 1. **MediaPipe landmarks** (478 3D points, optional blendshapes / head pose).
 2. **Average face** images per cohort.
-3. **Geometric phenotype features** (~125 columns derived from the landmarks)
+3. **Geometric phenotype features** (~120 columns derived from the landmarks)
    suitable for downstream classification or HPO-aligned reporting.
 
 It is designed to operate either on a directory tree of images
@@ -33,8 +33,9 @@ A single `facekit` entry point exposes all commands:
 | --- | --- |
 | `facekit extract-landmarks` | Run MediaPipe over an image folder; write JSON or JSONL landmarks (optionally with blendshapes, pose, mesh viz). |
 | `facekit average-face` | Generate a per-cohort average face image. |
-| `facekit extract-features` | Compute the full ~125-column geometric phenotype CSV from images or a landmark JSONL. Supports `--mode disease-specific` and `--frontal-check`. |
+| `facekit extract-features` | Compute the full ~120-column geometric phenotype CSV from images or a landmark JSONL. Supports `--mode disease-specific` and `--frontal-check`. |
 | `facekit extract-features-custom` | Same extractor, but driven by a user JSON that maps cohort folder names to a chosen subset of feature groups (no MONDO needed). Optionally loads a user Python file with extra `@register_feature` formulas. |
+| `facekit score` | Convert a phenotype CSV into feature-level z-scores against a normative reference (a packaged FairFace control reference by default). |
 | `facekit resolve-diseases` | Helper that resolves disease names to MONDO IDs and caches the results. |
 | 🚧 HPO prediction | _Coming soon_ — predict per-patient HPO phenotype terms directly from the geometric features. |
 | 🚧 Privacy evaluation | _Coming soon_ — quantify the re-identification risk of the derived face representations. |
@@ -65,6 +66,28 @@ Average face of the Williams syndrome cohort (GMDB).
 
 Four geometric measurements (IPD, inter-canthal, nasal base width, mouth width) drawn on the face.
 
+### `score`
+
+`extract-features` gives each measurement in its own units, which says nothing
+about whether a value is unusual. `score` divides that question out by
+expressing every measurement as a z-score against a control population:
+
+```
+z = (measurement - reference mean) / reference SD
+```
+
+The packaged reference (`src/facekit/data/reference_fairface.csv`) holds the
+per-feature mean, SD and n of the 886 FairFace control images that pass the
+frontal-pose gate, sampled across three ancestry groups. Pass `--reference` a
+phenotype CSV of your own controls to build a reference from them instead; the
+same pose gate is applied, since a reference measured under looser acquisition
+conditions carries an inflated SD. Rebuild the packaged table with
+`scripts/build_reference.py`.
+
+A reference and the faces scored against it must come from the same feature
+definitions: the pose correction fixes the meaning of all 120 measurements at
+once, so tables extracted under different conventions must not be combined.
+
 ### Quick start
 
 ```bash
@@ -74,7 +97,10 @@ facekit extract-landmarks -i images/ -o outputs/ --format jsonl --transform
 # 2. Compute geometric features from that JSONL
 facekit extract-features -i outputs/images_landmarks.jsonl -o results/
 
-# 3. Average-face image per cohort
+# 3. Express every measurement in reference SD units
+facekit score -i results/phenotypes_all.csv -o results/
+
+# 4. Average-face image per cohort
 facekit average-face -i images/ -o results/
 ```
 
@@ -116,7 +142,7 @@ facekit extract-features-custom \
     --user-features my_features.py
 ```
 
-Plugins are sandboxed against the base 125 columns and the HPO direction
+Plugins are sandboxed against the base 120 columns and the HPO direction
 codes; collisions raise at registration time.
 
 ## Roadmap
@@ -124,7 +150,7 @@ codes; collisions raise at registration time.
 Two capabilities are in development and not yet available:
 
 - 🚧 **HPO prediction** — predict per-patient [HPO](https://hpo.jax.org/) phenotype
-  terms directly from the extracted geometric features, turning the 125-column
+  terms directly from the extracted geometric features, turning the 120-column
   representation into a ranked list of candidate facial phenotypes.
 - 🚧 **Privacy evaluation** — quantify how much identity information survives in the
   derived face representations, to support safe sharing of FaceKit outputs.
@@ -138,7 +164,7 @@ src/facekit/
 ├── commands/             # one CLI command per file
 └── core/
     ├── morph/            # landmarks, alignment, averaging, warping
-    └── geometric/        # 125-column extractor + batch drivers
+    └── geometric/        # 120-column extractor + batch drivers
 scripts/
 └── download_mondo.sh     # pin a dated mondo.obo for HPO/MONDO lookups
 tests/                    # pytest suite

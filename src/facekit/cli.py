@@ -6,6 +6,7 @@ from facekit.commands.extract_features import extract_features
 from facekit.commands.extract_features_custom import extract_features_custom
 from facekit.commands.extract_landmarks import extract_landmarks
 from facekit.commands.resolve_diseases import resolve_diseases
+from facekit.commands.score import score
 
 app = typer.Typer(
     help="FaceKit: rare disease facial phenotype analysis toolkit.",
@@ -26,6 +27,9 @@ app.command("extract-features-custom")(extract_features_custom)
 
 # Module 3b: Disease-name resolver helper (MONDO cache builder)
 app.command("resolve-diseases")(resolve_diseases)
+
+# Module 3c: Normative z-scoring against a control reference
+app.command("score")(score)
 
 # Future commands will be registered here:
 # app.command("generate")(generate)            # Module 4: StyleGAN3
