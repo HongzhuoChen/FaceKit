@@ -21,10 +21,13 @@ different diseases? Two confounds are controlled.
                 resolution and colour, so acquisition similarity cannot
                 produce the effect.
   duplicates    RDFace ships no patient identifiers, so several images in a
-                folder could be the same patient. Near-duplicates are detected
-                with a difference hash and one image of each pair is dropped.
-                This bounds the threat; it cannot remove it, because two
-                different photographs of one patient are not near-duplicates.
+                folder could be the same patient, and identity_check.py shows
+                that many are: 10.7% of within-folder pairs sit below an
+                ArcFace threshold calibrated to a 0.1% false positive rate on
+                pairs that cannot be the same person. A difference hash misses
+                all of it, finding no repeated image and having no
+                discriminative power beyond that. Both drop lists are applied,
+                the ArcFace one being the informative one.
   resolution    RDFace short sides run from 41 px, and resolution_drift.py
                 shows the catalogue degrading below about 128 px. The test is
                 therefore repeated behind a ladder of resolution gates, up to
@@ -111,6 +114,9 @@ def main() -> None:
     ap.add_argument("--images", required=True, type=Path)
     ap.add_argument("--dhash-threshold", type=int, default=6,
                     help="Hamming distance below which two images are near-duplicates")
+    ap.add_argument("--identity-duplicates", type=Path,
+                    default=HERE / "results" / "identity_duplicates.csv",
+                    help="image_id list from identity_check.py, one per flagged pair")
     ap.add_argument("--seed", type=int, default=20260830)
     ap.add_argument("--out-dir", type=Path, default=HERE / "results")
     args = ap.parse_args()
@@ -147,11 +153,18 @@ def main() -> None:
     print(f"\nnear-duplicate pairs (dhash <= {args.dhash_threshold}): {len(pairs)}"
           f" -> {len(drop)} images dropped")
 
+    identity_drop = set()
+    if args.identity_duplicates.exists():
+        identity_drop = set(pd.read_csv(args.identity_duplicates).image_id)
+        print(f"same-patient images flagged by ArcFace: {len(identity_drop)}")
+
+    kept = df[~df.image_id.isin(drop | identity_drop)]
     features = [c for c in feats_df.columns if c not in NON_FEATURE]
     subsets = [("all frontal images", df),
-               ("near-duplicates removed", df[~df.image_id.isin(drop)])]
-    subsets += [(f"short side >= {t} px", df[df.short_side >= t])
-                for t in (128, 160, 224)]
+               ("near-duplicates removed", df[~df.image_id.isin(drop)]),
+               ("same-patient images removed", kept)]
+    subsets += [(f"same-patient removed, short side >= {t} px",
+                 kept[kept.short_side >= t]) for t in (128, 160, 224)]
 
     results = []
     for label, subset in subsets:
