@@ -6,12 +6,10 @@ Writes ``src/facekit/data/reference_fairface.csv``. The controls must come from
 the same feature definitions as the faces that will be scored against them: the
 pose correction fixes the meaning of all 120 measurements at once, so a
 reference and a patient table extracted under different conventions must not be
-combined (see CLAUDE.md).
+combined.
 
-The shipped table was built from the 2,051 FairFace images sampled across three
-ancestry groups (white/black/asian) in
-``chop_22q_analysis/feats_fairface_v2/phenotypes_all.csv``, of which 886 pass
-the frontal-pose gate.
+The shipped table was built from 2,051 FairFace images sampled across three
+ancestry groups (white/black/asian), of which 886 pass the frontal-pose gate.
 """
 import sys
 from pathlib import Path
