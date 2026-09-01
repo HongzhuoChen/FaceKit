@@ -22,6 +22,7 @@ from typing import Optional
 
 import typer
 
+from facekit.core.geometric.batch import LEADING_COLUMNS
 from facekit.core.geometric.custom_batch import run_batch_custom
 from facekit.core.geometric.defaults import DEFAULT_HPO_CODES
 
@@ -108,11 +109,7 @@ def extract_features_custom(
         typer.secho(f"[FaceKit] {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(2)
 
-    feat_cols = [
-        c for c in df.columns
-        if c not in {"disease", "image_id", "frontal_ok",
-                     "pose_yaw", "pose_pitch", "pose_roll"}
-    ]
+    feat_cols = [c for c in df.columns if c not in set(LEADING_COLUMNS)]
     typer.echo(
         f"[FaceKit] Done: {len(df)} rows, "
         f"{len(feat_cols)} feature columns -> {output_dir}"

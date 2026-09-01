@@ -59,7 +59,7 @@ def run_batch_custom(
     """Extract features under a user-supplied disease->feature mapping.
 
     Writes ``phenotypes_custom.csv`` and ``custom_selection_report.csv``
-    to ``output_dir``. The CSV schema is base 125 features +
+    to ``output_dir``. The CSV schema is base 120 features +
     plugin-registered cols (in registration order). Per-row, columns
     not selected for that row's cohort are NaN.
     """

@@ -28,11 +28,16 @@ env/
 # Claude / lab workflow
 .claude/
 .claude-notes/
+CLAUDE.md
 
 # Large / non-source artifacts (excluded from the public repo for now)
 facekit_asian_avg.png
 facekit.pptx
 results/
+raw_data/
+slides/
+*.whl
+*.zip
 
 # LaTeX build artifacts
 *.aux

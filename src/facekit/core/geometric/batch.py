@@ -161,8 +161,9 @@ def _iter_jsonl_records(
                 continue
             w, h = img_size
 
-            # Convert normalized -> pixel coordinates. The extractor's math
-            # is 2D, so z is dropped silently.
+            # Convert normalized -> pixel coordinates. Only x/y matter: the
+            # canonicalization takes depth from the canonical table, so a z
+            # column in the JSONL is accepted and ignored.
             lm_px = lm_norm.copy()
             lm_px[:, 0] *= w
             lm_px[:, 1] *= h
@@ -203,7 +204,7 @@ def _iter_jsonl_records(
 
 
 LEADING_COLUMNS = [
-    "disease", "image_id", "frontal_ok",
+    "disease", "image_id", "frontal_ok", "derotated",
     "pose_yaw", "pose_pitch", "pose_roll",
 ]
 

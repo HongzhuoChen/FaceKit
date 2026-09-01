@@ -59,7 +59,7 @@ def _validate_no_conflict(group: str, csv_columns: Tuple[str, ...]) -> None:
     Checks (in order):
       1. Already-registered plugin group name.
       2. Already-registered plugin csv_columns.
-      3. Base 125 feature columns (via ``GeometricFeatureExtractor``).
+      3. Base 120 feature columns (via ``GeometricFeatureExtractor``).
       4. Existing ``feature_group`` names in ``hpo_direction_codes.csv``
          (skipped with warning if ``_HPO_CODES_PATH`` is unset).
     """

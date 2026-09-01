@@ -1,7 +1,7 @@
 """
 FaceKit CLI command: extract-features
 
-Run the geometric feature extractor (~125 columns) over an image directory
+Run the geometric feature extractor (120 columns) over an image directory
 or a JSONL landmark file, and write a phenotype CSV.
 
 Examples
@@ -25,7 +25,7 @@ from typing import Optional
 
 import typer
 
-from facekit.core.geometric.batch import run_batch
+from facekit.core.geometric.batch import LEADING_COLUMNS, run_batch
 from facekit.core.geometric.defaults import (
     DEFAULT_FEATURE_MAPPING,
     DEFAULT_HPO_CODES,
@@ -84,13 +84,13 @@ def extract_features(
 ):
     """Extract geometric phenotype features into a CSV.
 
-    Output schema: ``[disease, image_id, frontal_ok, pose_yaw, pose_pitch,
-    pose_roll, <feature columns in canonical order>]``.
+    Output schema: ``[disease, image_id, frontal_ok, derotated, pose_yaw,
+    pose_pitch, pose_roll, <feature columns in canonical order>]``.
 
-    ``frontal_ok`` is tri-state: ``True`` (frontal pose verified),
-    ``False`` (pose checked and out-of-range, feature columns are NaN), or
-    ``NaN`` (pose unknown — JSONL row had no transformation matrix and
-    ``--frontal-check`` was off, so the check was neither passed nor failed).
+    ``frontal_ok`` is tri-state and always reports the real pose gate:
+    ``True`` (within thresholds), ``False`` (out of range), or ``NaN``
+    (pose unknown — no transformation matrix). ``--frontal-check`` only
+    controls whether out-of-range rows still get their features computed.
 
     In ``--mode disease-specific`` the schema is identical to ``--mode all``;
     columns not selected for a row's cohort are NaN-padded. A side artifact
@@ -130,11 +130,7 @@ def extract_features(
         typer.secho(f"[FaceKit] {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(2)
 
-    feat_cols = [
-        c for c in df.columns
-        if c not in {"disease", "image_id", "frontal_ok",
-                     "pose_yaw", "pose_pitch", "pose_roll"}
-    ]
+    feat_cols = [c for c in df.columns if c not in set(LEADING_COLUMNS)]
     typer.echo(
         f"[FaceKit] Done: {len(df)} rows, "
         f"{len(feat_cols)} feature columns -> {output_dir}"

@@ -45,7 +45,7 @@ def test_register_and_retrieve():
 
 
 def test_conflict_with_base_feature_column():
-    # eye_fissure_length_r is one of the base 125.
+    # eye_fissure_length_r is one of the base 120.
     with pytest.raises(ValueError, match="base feature column"):
         @api.register_feature(
             group="MY_NEW_GROUP",
@@ -178,7 +178,7 @@ def test_plugin_dispatch_in_compute_all():
     rng = np.random.default_rng(0)
     synthetic = rng.uniform(0.0, 1000.0, size=(478, 2))
     probe = GeometricFeatureExtractor.__new__(GeometricFeatureExtractor)
-    lm_c, scales = probe._canonicalize(synthetic)
+    lm_c, scales, _ = probe._canonicalize(synthetic)
     feats = probe._compute_all(lm_c, scales)
     assert feats["probe_col"] == 42.0
     assert "probe_col" in GeometricFeatureExtractor.FEATURE_COLUMNS
