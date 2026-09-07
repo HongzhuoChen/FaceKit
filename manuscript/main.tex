@@ -284,9 +284,10 @@ confidence intervals are obtained by resampling images with replacement.
 
 \section{Results}
 
-We evaluated FaceKit along the major components of its workflow. First, we assessed whether the landmark-derived geometric measurements captured facial phenotypes represented by clinically annotated HPO terms and whether these measurements supported interpretable comparisons across patients and disease cohorts. Second, because every measurement is defined on pose-corrected landmarks, we compared the available ways of supplying the depth that the correction requires, using endpoints that need no annotation. Third, we examined whether the cohort-specific generative models preserved the geometric phenotype distributions of the real images used for training, both within individual disease cohorts and in the differences that distinguish one cohort from another. Finally, because the pre-trained generators are intended for distribution and reuse, we evaluated whether their synthetic outputs reproduced the identities or visual appearance of the real patient photographs used during training. Together, these analyses assess the phenotypic validity, measurement reliability, generative fidelity, and privacy characteristics of the FaceKit workflow.
+We evaluated FaceKit along the major components of its workflow. First, we assessed whether the landmark-derived geometric measurements captured facial phenotypes represented by clinically annotated HPO terms and whether these measurements supported interpretable comparisons across patients and disease cohorts. Second, because every measurement is defined on pose-corrected landmarks, we compared the available ways of supplying the depth that the correction requires, using endpoints that need no annotation. Third, because a measurement is only useful if it survives a change of source, we repeated the disease-separation question on an independent rare-disease image collection and quantified how far the catalogue can be pushed down in image resolution before the measurements shift systematically. Fourth, since every measurement is reported relative to a distributed normative reference, we asked whether conditioning that reference on age, on image resolution or on ancestry changes the conclusions, and whether the deviation a syndrome produces is itself ancestry-dependent, using an independent clinical cohort of 22q11.2 deletion syndrome in which cases and controls are available in every ancestry group. Fifth, we examined whether the cohort-specific generative models preserved the geometric phenotype distributions of the real images used for training, both within individual disease cohorts and in the differences that distinguish one cohort from another. Finally, because the pre-trained generators are intended for distribution and reuse, we evaluated whether their synthetic outputs reproduced the identities or visual appearance of the real patient photographs used during training. Together, these analyses assess the phenotypic validity, measurement reliability, generative fidelity, and privacy characteristics of the FaceKit workflow.
 
 \subsection{Quantitative measurements reproduce annotated facial phenotypes}
+\label{sec:validity}
 
 We applied FaceKit to a curated subset of the GestaltMatcher Database comprising
 4,559 frontal facial images from 50 rare-disease cohorts. For each image, FaceKit
@@ -575,6 +576,387 @@ a limitation of the approach rather than a property of the canonical table.
 
 \FloatBarrier
 
+\subsection{The measurements transfer to an independent cohort and degrade
+predictably with image resolution}
+\label{sec:external}
+
+The results above were obtained on one curated database. Because a measurement
+toolkit is only useful if its measurements survive a change of source, we
+repeated the central question on RDFace, an independent collection of 456
+pediatric facial images spanning 103 rare conditions, released without HPO
+annotations and without per-image demographics \cite{rdface}. Only three of its
+conditions appear among the 50 GMDB cohorts, and its images are far more
+heterogeneous than the GMDB subset, with short sides from 41 to 837 pixels and
+roughly a quarter effectively grayscale. No term-level claim can be tested on
+this dataset. What it can test is whether the 120 measurements carry disease
+information at all on a corpus the pipeline was never tuned against.
+
+FaceKit placed landmarks on 454 of the 456 images. The pose gate passed 348 of
+those (76.7\%). Because the RDFace curators had already screened every image as
+a frontal portrait under clinical supervision, the 106 rejected images measure
+the disagreement between the geometric gate and a human frontality judgement
+rather than a share of unusable images, and this disagreement is itself a
+sensitivity result: roughly one in four photographs that a clinician accepts as
+frontal carries enough residual yaw, pitch or roll to fall outside the
+thresholds FaceKit applies.
+
+We then asked whether two images of the same condition are closer in the
+120-dimensional measurement space than two images of different conditions,
+using the mean within-condition distance minus the mean between-condition
+distance as the statistic and restricting the test to conditions with at least
+three images. Two confounds were controlled by construction. Images of one
+condition are frequently scraped from a single source, so a folder tends to be
+homogeneous in resolution and colour; the condition labels were therefore
+permuted only within strata defined by image resolution and by colour, which
+prevents acquisition similarity from generating the effect. RDFace ships no
+patient identifiers, so several images of one condition may show the same
+patient; a face-recognition check flagged 10.7\% of within-folder pairs as
+falling below an ArcFace threshold calibrated to a 0.1\% false-positive rate on
+pairs that cannot be the same person, and those images were removed. A
+perceptual difference hash found no repeated image and contributed nothing
+beyond the recognition check.
+
+On the 321 images from 81 conditions that pass the gate, images of the same
+condition are closer by 1.34 units on the standardized scale, against a
+stratified null of $-0.03 \pm 0.12$, placing the observed value 10.7 standard
+deviations below the null ($p = 5.0 \times 10^{-4}$, the floor of a
+2,000-permutation test). Removing the images flagged as repeat patients leaves
+253 images from 67 conditions and a separation 8.2 standard deviations below
+the null. The effect therefore does not depend on the same patient appearing
+twice.
+
+Because RDFace reaches much lower resolutions than the GMDB subset, we repeated
+the test behind a ladder of resolution gates. The separation persists at every
+level: $6.8$ standard deviations below the null at a short side of at least 128
+pixels (199 images), $6.7$ at 160 pixels (140 images), and $4.8$ at 224 pixels,
+the resolution at which the GMDB patients are measured, where only 51 images
+and 15 conditions remain. The measurement space therefore carries disease
+information outside the database FaceKit was developed on, and the signal is not
+produced by the unreliable low-resolution tail
+(Fig.~\ref{fig:external}\subref{fig:ext-sep}).
+
+The resolution dependence itself was quantified directly, as a paired
+within-image quantity that involves no model: every control image was measured
+at its native 448 pixels and again after downsampling, and the change in each
+measurement was expressed in reference standard deviations. The catalogue is
+stable down to about 128 pixels and degrades quickly below it. The median
+absolute shift across the 120 measurements is 0.02 reference SD at 224 pixels,
+0.06 at 128 pixels, 0.13 at 96 pixels and 0.23 at 64 pixels, and the number of
+measurements displaced by more than 0.1 reference SD rises from 9 to 36 to 67
+to 86 over the same range. The measurements most affected are those defined on
+low-contrast contours, led by \texttt{malar\_bulge\_mean},
+\texttt{face\_width\_uniformity} and \texttt{nose\_bridge\_width}
+(Fig.~\ref{fig:external}\subref{fig:ext-res}). We therefore
+report 128 pixels as the operating floor of the catalogue, and images below it
+should be treated as carrying a systematic offset rather than only added noise.
+
+Finally, for the three conditions shared with GMDB we compared the mean
+measurement profile of the RDFace images against all 50 GMDB cohort profiles.
+The matching GMDB cohort ranked third, third and sixth of 50 after centring
+each profile on the cohort mean (Angelman syndrome $r = 0.40$, Joubert syndrome
+$r = 0.38$, Mowat--Wilson syndrome $r = 0.37$), and fourth, fourth and fifth
+without centring. The matching cohort is thus consistently among the closest
+few of 50 but is never the single closest, which is the expected outcome given
+that each RDFace condition contributes only three to five images.
+
+
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}[b]{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{image/ext_a_separation}
+    \caption{}
+    \label{fig:ext-sep}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.50\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{image/ext_b_resolution}
+    \caption{}
+    \label{fig:ext-res}
+  \end{subfigure}
+
+  \caption{\textbf{The measurements carry disease information outside the
+  development database, and the resolution at which they stop being
+  comparable.}
+  (\protect\subref{fig:ext-sep}) Disease separation in RDFace, expressed as the
+  number of standard deviations by which the observed statistic (mean
+  within-condition minus mean between-condition distance in the standardized
+  120-dimensional space) falls below a permutation null in which the condition
+  labels are shuffled only within strata of image resolution and colour, so
+  that acquisition similarity cannot produce the effect. The controls are
+  cumulative from top to bottom: perceptual near-duplicates removed, then images
+  that a face-recognition check assigns to a patient already present, then a
+  ladder of resolution gates. Every row reaches the floor of the
+  2,000-permutation test ($p = 5.0 \times 10^{-4}$). The separation weakens as
+  the gates remove images but does not disappear, which is what distinguishes it
+  from an artifact of repeated patients or of the low-resolution tail.
+  (\protect\subref{fig:ext-res}) Paired within-image drift: every control image
+  is measured at its native 448 pixels and again after downsampling, and the
+  change is expressed in reference standard deviations. The heavy line is the
+  median over the 120 measurements with the interquartile range shaded; the
+  three thin lines are the measurements displaced most at 128 pixels. The
+  catalogue is stable to about 128 pixels, where the median shift is 0.06
+  reference SD and 36 of the 120 measurements exceed 0.1, and degrades quickly
+  below it. Panels are generated by
+  \texttt{manuscript/make\_sensitivity\_panels.py}.}
+  \label{fig:external}
+\end{figure}
+
+\subsection{Age and image resolution change the measurements but not the
+reference}
+\label{sec:age}
+
+The reference distributed with FaceKit pools control images below the age of
+20, while the median age of the GMDB cohorts ranges from 1.1 to 15.0 years. Two
+separate questions follow: whether the measurements depend on age, and whether
+conditioning the reference on age changes any conclusion. They have different
+answers.
+
+The measurements do depend on age. In the healthy controls, with ancestry,
+gender and the three pose angles adjusted for, the partial $\eta^2$ of age band
+has a median of 0.038 across the 120 measurements and reaches 0.28 for
+\texttt{nose\_tip\_midline\_dent}, 0.25 for \texttt{chin\_height} and 0.24 for
+\texttt{face\_aspect\_ratio}. Facial proportion changes with growth, and the
+catalogue records that change.
+
+Conditioning the reference on it nonetheless buys nothing. We re-scored the
+same patients against a reference restricted to their own age band, changing
+only the reference: the patients, the measurements, the statistics and the
+thresholds are those of the analysis in Section~\ref{sec:validity}, and the two
+arms are compared term by term on the same patients. Of the 77 terms testable
+in the 148 patients with a usable recorded age, 24 were reproduced against the
+pooled reference and 27 against the age-conditioned one, four terms gaining and
+one losing (exact McNemar $p = 0.375$). Across all 77 terms the signed effect
+moved by a median of $-0.0006$ (Wilcoxon $p = 0.945$), the mean absolute effect
+went from 0.472 to 0.480, and the number of terms whose mapped measurement
+ranked in the top 30 was unchanged at 20.
+
+The reading that settles it is not the size of the change but where it falls. A
+conditioning that removes a real confound should help most on the measurements
+that are most sensitive to what is being conditioned on. It does not: the
+correlation between the age sensitivity of a term's mapped measurement and the
+gain that term receives is $\rho = -0.02$ ($p = 0.881$), and splitting the terms
+at the median of that sensitivity gives median gains of $+0.006$ and $-0.005$ in
+the two halves (Mann--Whitney $p = 0.710$; Fig.~\ref{fig:refcond}\subref{fig:ref-age}).
+The small movement that does occur is indistinguishable from drift. Conditioning on any variable also shrinks the
+reference standard deviation and inflates every $z$ mechanically; here the
+within-band to pooled SD ratio is 0.985, bounding that artifact at about 1.5\%,
+which is of the same order as the entire observed change. We therefore ship a
+single age-pooled reference, and note that this conclusion is specific to a
+reference already restricted to individuals under 20.
+
+Image resolution, the third variable on which the reference and the patients
+differ, behaves the same way. The distributed reference is built from 448-pixel
+control images while the patients are measured at 224 pixels, and the previous
+subsection showed that this difference is not free: the median measurement moves
+by 0.02 reference SD between the two resolutions and nine measurements move by
+more than 0.1. We therefore rebuilt the reference from the same control images
+re-measured at 224 pixels and re-scored the patients against it. Because this
+arm re-measures the controls rather than partitioning them, the reference
+standard deviation does not shrink and the mechanical inflation that conditioning
+on a grouping variable produces cannot arise here at all. Of the 78 terms
+testable in 238 patients, one changed verdict (\emph{Square face}, mapped to
+\texttt{face\_width\_uniformity}, $q$ from 0.068 to 0.020), taking the
+reproduced count from 33 to 34 (exact McNemar $p = 1.0$); the signed effect moved
+by a median of $+0.005$ (Wilcoxon $p = 0.203$), the mean absolute effect from
+0.465 to 0.487, and the number of terms whose mapped measurement ranked in the
+top 30 was unchanged at 26. As with age, the gain does not concentrate where it
+should: $\rho = +0.17$ between a term's resolution sensitivity and its gain
+($p = 0.134$), with median gains of $+0.013$ and $+0.004$ across the median split
+(Mann--Whitney $p = 0.272$; Fig.~\ref{fig:refcond}\subref{fig:ref-res}).
+Resolution is worth controlling at acquisition, as Section~\ref{sec:external}
+shows, but it is not worth conditioning the reference on.
+
+Of the three variables on which the distributed reference differs from the
+patient population, only one changes a conclusion, and it is the subject of the
+next subsection.
+
+
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}[b]{0.325\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{image/ref_a_ancestry}
+    \caption{}
+    \label{fig:ref-anc}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.325\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{image/ref_b_age}
+    \caption{}
+    \label{fig:ref-age}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.325\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{image/ref_c_resolution}
+    \caption{}
+    \label{fig:ref-res}
+  \end{subfigure}
+
+  \caption{\textbf{Of the three variables on which the distributed reference
+  differs from the patients, only ancestry changes what the reference
+  concludes.}
+  Each point is one HPO term, and the three panels differ only in the variable
+  the reference is conditioned on: ancestry (\protect\subref{fig:ref-anc}), age
+  band (\protect\subref{fig:ref-age}) and image resolution
+  (\protect\subref{fig:ref-res}). The abscissa is the sensitivity of the
+  measurement that term is mapped to, measured in the healthy controls: for the
+  first two, the partial $\eta^2$ of that variable, each adjusted for the other,
+  for gender and for the three pose angles; for the third, the median shift of
+  the measurement when the same image is measured at 224 rather than 448 pixels,
+  a paired quantity that involves no model. The ordinate is the change in the
+  term's signed effect when the same patients are re-scored against the
+  conditioned reference instead of the pooled one; everything except the
+  reference is held fixed, and all three panels share the ordinate scale. The
+  dashed line splits the terms at the median sensitivity and the horizontal bars
+  are the median gain in each half. A conditioning that removes a real confound
+  should lift the right-hand half and leave the left-hand half alone, which is
+  what ancestry does and what neither age nor resolution does. This contrast,
+  rather than the number of terms that cross a significance threshold, is what
+  separates the three: the headline counts move by six, four and one term
+  respectively, none of which is significant on a catalogue of this size. Panels
+  are generated by \texttt{manuscript/make\_sensitivity\_panels.py}.}
+  \label{fig:refcond}
+\end{figure}
+
+\subsection{Ancestry enters through the reference, not through the disease
+effect}
+\label{sec:ancestry}
+
+Ancestry behaves in the opposite way to the other two, and the distinction
+matters for how a FaceKit $z$-score should be read.
+
+The measurements are ancestry-sensitive to a similar degree as they are
+age-sensitive, with a median partial $\eta^2$ of 0.032 in the controls after
+adjustment for age band, gender and pose, rising to 0.24 for
+\texttt{eye\_fissure\_length\_mean}, 0.22 for
+\texttt{inter\_pupillary\_distance} and 0.21 for
+\texttt{canthal\_to\_pupillary\_ratio}. Unlike age and resolution, however,
+conditioning the reference on ancestry moves the conclusions in the direction a
+real confound predicts. Of the 74 terms testable in the 194 patients with a recorded
+ancestry, 29 were reproduced against the pooled reference and 34 against the
+ancestry-conditioned one, six terms gaining and one losing (exact McNemar
+$p = 0.125$), and the mean absolute effect rose from 0.474 to 0.536. The
+headline count is underpowered on a catalogue of this size, but the gain
+concentrates where it should: the correlation between the ancestry sensitivity
+of a term's mapped measurement and the gain that term receives is
+$\rho = +0.20$, and the half of the terms whose measurements are more
+ancestry-sensitive gains a median of $+0.121$ against $-0.012$ for the less
+sensitive half (Mann--Whitney $p = 0.0098$;
+Fig.~\ref{fig:refcond}\subref{fig:ref-anc}). The mechanical inflation from a
+narrower reference is bounded at 2.0\% by the within-group to pooled SD ratio of
+0.980, an order of magnitude smaller than the gain in the sensitive half. Where
+ancestry is recorded, a conditioned reference is therefore the better choice,
+and \texttt{facekit score} accepts one.
+
+That the reference depends on ancestry does not imply that a disease effect
+does, and the two are separable in a cohort where both a case group and a
+control group are available in every ancestry group. We measured 457 clinical
+photographs of patients with 22q11.2 deletion syndrome, of which 434 carry a
+recorded ancestry (352 European, 51 African, 31 Asian), and compared them
+against the control images that pass a strict pose filter of $8^{\circ}$ on all
+three angles (176, 95 and 87 respectively). For each of the 120 measurements we
+fitted
+\[
+  \text{measurement} \sim C(\text{ancestry}) \times C(\text{cohort})
+    + \text{yaw} + \text{pitch} + \text{roll}
+\]
+and read the ancestry-by-cohort interaction from a type-II analysis of
+variance, with Benjamini--Hochberg correction across the 120 measurements. The
+cohort main effect is deliberately not interpreted: the patients are clinical
+photographs and the controls are in-the-wild images, so a site and acquisition
+difference is confounded with the disease. The interaction is the quantity that
+is free of it, and it asks the question that matters for a distributed
+reference, namely whether the deviation a disease produces is the same size in
+every ancestry group.
+
+Five of the 120 measurements reached $q < 0.05$: four lip measurements and
+\texttt{canthal\_to\_pupillary\_ratio}. Four of the five do not survive a change
+of scale. Every lip deviation has the same sign in all three ancestry groups and
+differs only in magnitude, with a case-to-control ratio of 1.07 to 1.10 in the
+European and Asian groups against 1.24 to 1.28 in the African group, on a
+baseline that is itself largest in the African controls
+(Fig.~\ref{fig:anc}\subref{fig:anc-ratio}). This is the signature of a
+multiplicative effect read on an additive scale. We therefore refitted the
+identical model on the logarithm of each measurement. The scale comparison is
+restricted to the 97 measurements that are strictly positive and therefore
+testable on both scales, so that the raw and the log arm share one correction
+family. Six of those 97 reach $q < 0.05$ on the raw scale and two on the log
+scale. The four lip terms fall from $q = 0.0029$ to $0.042$ down to $q = 0.22$ to
+$0.74$, while \texttt{canthal\_to\_pupillary\_ratio} moves only from $0.015$ to
+$0.042$ and is the one measurement significant on both scales, with a partial
+$\eta^2$ of 0.019 (Fig.~\ref{fig:anc}\subref{fig:anc-scale}). A second
+measurement, \texttt{cheek\_area\_mean}, is
+significant on the log scale ($q = 0.042$) and not on the raw scale
+($q = 0.23$); with one such term out of 97 we do not interpret it.
+
+Two acquisition artifacts were excluded rather than assumed away. Mouth opening
+does not drive the lip result: no image in either group exceeds the aperture
+threshold at which FaceKit masks the lip measurements, and the aperture
+correlates with the four lip measurements at $|r| \le 0.14$. Resolution cannot
+generate the interaction: all 457 patient images are 784 pixels and all control
+images 448 pixels, so resolution differs between the groups but is constant
+within each and identical across ancestry, loading entirely on the cohort main
+effect that this design already declines to interpret. What remains uncontrolled
+is skin tone interacting with the placement of the vermilion border under
+different acquisition conditions, which would appear in this design as an
+ancestry-by-cohort interaction and is the reason the log-scale result is
+reported alongside the raw one rather than in place of it.
+
+Taken together, the two analyses locate the ancestry dependence in the baseline
+rather than in the disease signal. A FaceKit $z$-score compares a patient to a
+reference population whose composition matters, so the reference should be
+conditioned on ancestry when it is recorded; but the deviation a syndrome
+produces was, for this syndrome and these 120 measurements, proportionally the
+same in all three ancestry groups. A practical consequence follows for ratio
+measurements, which most of the catalogue consists of: group comparisons on
+them are better made on the log scale, where a proportional effect is additive
+and a difference in baseline does not masquerade as an interaction.
+
+
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}[b]{0.51\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{image/anc_a_scale}
+    \caption{}
+    \label{fig:anc-scale}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.47\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{image/anc_b_ratio}
+    \caption{}
+    \label{fig:anc-ratio}
+  \end{subfigure}
+
+  \caption{\textbf{The 22q11.2 deletion phenotype deviates from controls by the
+  same proportion in every ancestry group.}
+  (\protect\subref{fig:anc-scale}) Ancestry-by-cohort interaction $q$ for every
+  measurement significant on at least one scale, fitted on the raw measurement
+  and on its logarithm with the identical model and the identical rows. The
+  correction family is the 97 strictly positive measurements, so the two arms
+  are directly comparable. The four lip measurements cross from below to above
+  $q = 0.05$ once the scale is changed, which is what an effect that is
+  multiplicative rather than additive does;
+  \texttt{canthal\_to\_pupillary\_ratio} barely moves and is the only
+  measurement significant on both scales.
+  (\protect\subref{fig:anc-ratio}) The same measurements as a ratio of the
+  22q11.2 mean to the control mean within each ancestry group, with 95\%
+  bootstrap intervals over 2,000 resamples. The lip measurements sit above 1 in
+  all three groups and differ only in how far above, on a baseline that is
+  itself largest in the African controls; only
+  \texttt{canthal\_to\_pupillary\_ratio} crosses 1, changing direction between
+  groups. Panels are generated by
+  \texttt{manuscript/make\_sensitivity\_panels.py}.}
+  \label{fig:anc}
+\end{figure}
+
+\FloatBarrier
+
 \subsection{Synthetic images reproduce cohort-level geometric phenotypes}
 
 We next asked whether the synthetic faces produced by the trained generators
@@ -848,9 +1230,9 @@ FaceKit provides a reproducible and interpretable workflow for transforming faci
 
 The privacy assessment supports distributing the pre-trained generators, but with a distinction that should be preserved when the synthetic images are used. On the identity axis, sampling from a released generator was no more likely to produce a face close to a training patient than drawing another real photograph of the same syndrome was, and this held for all three recognition models at every operating point examined. On the appearance axis the synthetic images were clearly closer to the training photographs than held-out real images were. This reflects the acquisition characteristics the generator learned alongside facial morphology rather than the identity of any individual, since the perceptual metric cannot separate two photographs of one patient from photographs of two different patients. The assessment is nevertheless an empirical audit against specific recognition models and a specific perceptual metric, not a formal privacy guarantee: it bounds what these particular measurements can detect, and a stronger attack or a better embedding could in principle detect more.
 
-Several limitations should be considered. First, the reliability of every geometric measurement depends on the accuracy of the underlying facial landmark detector. General-purpose detectors are primarily trained on normative faces and may place landmarks according to learned expectations of typical facial structure when applied to rare-disease faces with substantially different morphology. Errors at this stage propagate directly into all downstream measurements and cannot be corrected through feature design alone. The same limitation applies to any phenotype defined by appearance rather than by shape, as the synophrys result above illustrates: a landmark mesh carries no photometric information and cannot represent hair distribution. Second, some feature failures arise from the choice of geometric formula or normalization scale, as in the full-cheeks result, indicating that normalization strategies may need to be selected separately for different measurements. Third, landmarks estimated from a single two-dimensional image remain sensitive to head pose, facial expression, image resolution, cropping, and acquisition conditions, despite the pose-quality filtering and geometric normalization implemented in FaceKit. These measurements should therefore not be interpreted as equivalent to calibrated three-dimensional facial measurements.
+Several limitations should be considered. First, the reliability of every geometric measurement depends on the accuracy of the underlying facial landmark detector. General-purpose detectors are primarily trained on normative faces and may place landmarks according to learned expectations of typical facial structure when applied to rare-disease faces with substantially different morphology. Errors at this stage propagate directly into all downstream measurements and cannot be corrected through feature design alone. The same limitation applies to any phenotype defined by appearance rather than by shape, as the synophrys result above illustrates: a landmark mesh carries no photometric information and cannot represent hair distribution. Second, some feature failures arise from the choice of geometric formula or normalization scale, as in the full-cheeks result, indicating that normalization strategies may need to be selected separately for different measurements. Third, landmarks estimated from a single two-dimensional image remain sensitive to head pose, facial expression, image resolution, cropping, and acquisition conditions, despite the pose-quality filtering and geometric normalization implemented in FaceKit. The resolution analysis puts a number on one of these: the catalogue is stable to about 128 pixels of short side and acquires systematic offsets rather than merely added noise below it, so a measurement taken from a small image should not be compared on the same scale as one taken from a large one. The reference analyses put a number on another: the normative baseline depends on ancestry, and a reference conditioned on it recovers effects that the pooled reference misses, whereas conditioning on age or on image resolution changes nothing that can be distinguished from drift. These measurements should therefore not be interpreted as equivalent to calibrated three-dimensional facial measurements.
 
-Future development will focus on supporting landmark-detection models adapted to rare-disease faces, refining feature-specific normalization strategies, and incorporating complementary appearance-based representations for phenotypes that cannot be described by geometry alone. Validation in larger cohorts and across demographic and imaging subgroups will also be needed before quantitative ranges can be interpreted clinically.
+Future development will focus on supporting landmark-detection models adapted to rare-disease faces, refining feature-specific normalization strategies, and incorporating complementary appearance-based representations for phenotypes that cannot be described by geometry alone. Validation in larger cohorts and across demographic and imaging subgroups will also be needed before quantitative ranges can be interpreted clinically; the ancestry-invariance of the disease effect reported here rests on a single syndrome and on ancestry groups of 31 to 352 patients, and the smaller of those groups cannot exclude effects of the size that would matter clinically.
 
 \section{Conclusion}
 
