@@ -16,6 +16,12 @@ Local modifications (keep this list current):
    `from pkg_resources import parse_version` replaced by
    `from packaging.version import parse as parse_version`. `pkg_resources` is
    deprecated and scheduled for removal from setuptools.
+2. `training/training_loop.py`, `train.py`: `--lr-schedule {constant,cosine}`
+   (default `constant`, the original behaviour). `cosine` multiplies both
+   optimizers' base learning rates by `0.5 * (1 + cos(pi * t / T))`, with `t`
+   the images seen so far and `T = total_kimg`, updated every batch. This is
+   the schedule the manuscript's generators were trained with; `facekit train`
+   turns it on by default. Every edit is marked `FaceKit modification`.
 
 The modules must stay importable under their original top-level names
 (`dnnlib`, `torch_utils`, ...) because trained network pickles refer to them

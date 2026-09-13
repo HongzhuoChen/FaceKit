@@ -9,6 +9,7 @@ from facekit.commands.generate import generate
 from facekit.commands.pack import pack
 from facekit.commands.resolve_diseases import resolve_diseases
 from facekit.commands.score import score
+from facekit.commands.train import train
 
 app = typer.Typer(
     help="FaceKit: rare disease facial phenotype analysis toolkit.",
@@ -35,11 +36,11 @@ app.command("score")(score)
 
 # Module 4: Synthetic face generation (StyleGAN3)
 app.command("pack")(pack)
+app.command("train")(train)
 app.command("generate")(generate)
 
 # Future commands will be registered here:
 # app.command("enhance")(enhance)     # Module 4: DDColor + GFPGAN preprocessing
-# app.command("train")(train)         # Module 4: train a generator
 # app.command("privacy")(privacy)     # Module 5: identity / appearance leakage audit
 
 
