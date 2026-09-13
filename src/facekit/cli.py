@@ -5,6 +5,7 @@ from facekit.commands.average_face import average_face
 from facekit.commands.extract_features import extract_features
 from facekit.commands.extract_features_custom import extract_features_custom
 from facekit.commands.extract_landmarks import extract_landmarks
+from facekit.commands.generate import generate
 from facekit.commands.resolve_diseases import resolve_diseases
 from facekit.commands.score import score
 
@@ -31,9 +32,14 @@ app.command("resolve-diseases")(resolve_diseases)
 # Module 3c: Normative z-scoring against a control reference
 app.command("score")(score)
 
+# Module 4: Synthetic face generation (StyleGAN3)
+app.command("generate")(generate)
+
 # Future commands will be registered here:
-# app.command("generate")(generate)            # Module 4: StyleGAN3
-# app.command("privacy-attack")(privacy_attack)  # Module 5: Privacy
+# app.command("enhance")(enhance)     # Module 4: DDColor + GFPGAN preprocessing
+# app.command("pack")(pack)           # Module 4: face crop -> StyleGAN3 dataset zip
+# app.command("train")(train)         # Module 4: train a generator
+# app.command("privacy")(privacy)     # Module 5: identity / appearance leakage audit
 
 
 if __name__ == "__main__":

@@ -34,9 +34,22 @@ geometric = [
     "pandas>=2.0",
 ]
 
+# Module: synthetic face generation (generate; later pack / train).
+# Vendored StyleGAN3 under src/facekit/vendor/stylegan3 (NVIDIA license, non-commercial).
+synth = [
+    "torch>=2.0",
+    "packaging",
+    "scipy>=1.10",
+    "click>=8.0",
+    "requests",
+    "imageio",
+    "psutil",
+    "ninja",
+]
+
 # All modules installed
 all = [
-    "facekit[morph,geometric]",
+    "facekit[morph,geometric,synth]",
 ]
 
 # Developer tools
@@ -54,4 +67,11 @@ facekit = "facekit.cli:app"
 where = ["src"]
 
 [tool.setuptools.package-data]
-facekit = ["data/*.csv"]
+facekit = [
+    "data/*.csv",
+    "vendor/stylegan3/LICENSE.txt",
+    "vendor/stylegan3/README.md",
+    "vendor/stylegan3/torch_utils/ops/*.cu",
+    "vendor/stylegan3/torch_utils/ops/*.cpp",
+    "vendor/stylegan3/torch_utils/ops/*.h",
+]
