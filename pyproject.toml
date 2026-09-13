@@ -47,9 +47,31 @@ synth = [
     "ninja",
 ]
 
+# Module: image preparation (enhance): DDColor colorization + GFPGAN restoration.
+# Both networks are vendored under src/facekit/vendor (Apache-2.0); facexlib
+# supplies face detection/alignment for GFPGAN.
+enhance = [
+    "torch>=2.0",
+    "torchvision",
+    "facexlib>=0.3",
+    "huggingface_hub",
+    "mediapipe>=0.10.30",
+]
+
+# Module: privacy audit of synthetic images (privacy)
+privacy = [
+    "torch>=2.0",
+    "torchvision",
+    "insightface>=0.7",
+    "onnxruntime>=1.14",
+    "lpips>=0.1.4",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+]
+
 # All modules installed
 all = [
-    "facekit[morph,geometric,synth]",
+    "facekit[morph,geometric,synth,enhance,privacy]",
 ]
 
 # Developer tools
@@ -71,6 +93,8 @@ facekit = [
     "data/*.csv",
     "vendor/stylegan3/LICENSE.txt",
     "vendor/stylegan3/README.md",
+    "vendor/ddcolor/LICENSE",
+    "vendor/gfpgan/LICENSE",
     "vendor/stylegan3/torch_utils/ops/*.cu",
     "vendor/stylegan3/torch_utils/ops/*.cpp",
     "vendor/stylegan3/torch_utils/ops/*.h",
