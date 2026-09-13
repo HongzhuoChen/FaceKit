@@ -87,6 +87,22 @@ def save_image_grid(img, fname, drange, grid_size):
 
 #----------------------------------------------------------------------------
 
+# FaceKit modification: optional learning-rate schedule.
+def lr_factor(lr_schedule, cur_nimg, total_kimg):
+    """Multiplier on the base learning rate at cur_nimg.
+
+    'constant' is the original StyleGAN3 behaviour; 'cosine' decays from 1 to
+    0 over total_kimg following 0.5 * (1 + cos(pi * t / T)).
+    """
+    if lr_schedule == 'constant':
+        return 1.0
+    if lr_schedule == 'cosine':
+        t = min(cur_nimg / (total_kimg * 1000), 1.0)
+        return 0.5 * (1.0 + np.cos(np.pi * t))
+    raise ValueError(f'unknown lr_schedule {lr_schedule!r}')
+
+#----------------------------------------------------------------------------
+
 def training_loop(
     run_dir                 = '.',      # Output directory.
     training_set_kwargs     = {},       # Options for training set.
@@ -112,6 +128,7 @@ def training_loop(
     ada_interval            = 4,        # How often to perform ADA adjustment?
     ada_kimg                = 500,      # ADA adjustment speed, measured in how many kimg it takes for p to increase/decrease by one unit.
     total_kimg              = 25000,    # Total length of the training, measured in thousands of real images.
+    lr_schedule             = 'constant', # FaceKit modification: 'constant' (original) or 'cosine' decay over total_kimg.
     kimg_per_tick           = 4,        # Progress snapshot interval.
     image_snapshot_ticks    = 50,       # How often to save image snapshots? None = disable.
     network_snapshot_ticks  = 50,       # How often to save network snapshots? None = disable.
@@ -205,6 +222,7 @@ def training_loop(
             phases += [dnnlib.EasyDict(name=name+'main', module=module, opt=opt, interval=1)]
             phases += [dnnlib.EasyDict(name=name+'reg', module=module, opt=opt, interval=reg_interval)]
     for phase in phases:
+        phase.base_lr = phase.opt.param_groups[0]['lr'] # FaceKit modification: for lr_schedule.
         phase.start_event = None
         phase.end_event = None
         if rank == 0:
@@ -263,6 +281,13 @@ def training_loop(
             all_gen_c = [training_set.get_label(np.random.randint(len(training_set))) for _ in range(len(phases) * batch_size)]
             all_gen_c = torch.from_numpy(np.stack(all_gen_c)).pin_memory().to(device)
             all_gen_c = [phase_gen_c.split(batch_gpu) for phase_gen_c in all_gen_c.split(batch_size)]
+
+        # FaceKit modification: apply the learning-rate schedule.
+        if lr_schedule != 'constant':
+            factor = lr_factor(lr_schedule, cur_nimg, total_kimg)
+            for phase in phases:
+                for group in phase.opt.param_groups:
+                    group['lr'] = phase.base_lr * factor
 
         # Execute training phases.
         for phase, phase_gen_z, phase_gen_c in zip(phases, all_gen_z, all_gen_c):

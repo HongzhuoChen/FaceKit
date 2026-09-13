@@ -148,6 +148,7 @@ def parse_comma_separated_list(s):
 @click.option('--dlr',          help='D learning rate', metavar='FLOAT',                        type=click.FloatRange(min=0), default=0.002, show_default=True)
 @click.option('--map-depth',    help='Mapping network depth  [default: varies]', metavar='INT', type=click.IntRange(min=1))
 @click.option('--mbstd-group',  help='Minibatch std group size', metavar='INT',                 type=click.IntRange(min=1), default=4, show_default=True)
+@click.option('--lr-schedule',  help='Learning-rate schedule (FaceKit modification)',           type=click.Choice(['constant', 'cosine']), default='constant', show_default=True)
 
 # Misc settings.
 @click.option('--desc',         help='String to include in result dir name', metavar='STR',     type=str)
@@ -213,6 +214,7 @@ def main(**kwargs):
     c.loss_kwargs.r1_gamma = opts.gamma
     c.G_opt_kwargs.lr = (0.002 if opts.cfg == 'stylegan2' else 0.0025) if opts.glr is None else opts.glr
     c.D_opt_kwargs.lr = opts.dlr
+    c.lr_schedule = opts.lr_schedule # FaceKit modification.
     c.metrics = opts.metrics
     c.total_kimg = opts.kimg
     c.kimg_per_tick = opts.tick
