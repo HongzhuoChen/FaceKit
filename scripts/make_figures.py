@@ -15,10 +15,11 @@ Exact command used to generate the committed figures::
         --crouzon-image /vast/projects/kai/multimodal-machine-learn/hongzhuo/mm_fusion_top50/visualization_images/pat8721_img13755.jpg \
         --williams-dir  /vast/projects/kai/multimodal-machine-learn/hongzhuo/mm_fusion_top50/combined_data/images/Williams_syndrome
 
-Produces (one per illustrated command):
-    figures/average-face.png      ``facekit average-face`` over the Williams cohort
-    figures/extract-landmarks.png ``facekit extract-landmarks`` mesh on a Crouzon face
-    figures/extract-features.png  four geometric measurement overlays on that face
+Produces:
+    figures/phenotyping.png       one 3-panel figure, identically framed: the 478
+                                  landmarks as dots on a Crouzon face, four
+                                  measurements on the same face, and the
+                                  ``average-face`` of the Williams cohort
     figures/enhance.png           ``facekit enhance`` before/after on that face
                                   (grayscale -> DDColor; 80 px -> GFPGAN); needs
                                   ``facekit[enhance]``
@@ -70,9 +71,6 @@ FEATURES = [
 BIZYG = (234, 454)
 DPI = 200
 
-# All three figures are normalized to one square canvas so they render at a
-# uniform size in the README gallery (aspect ratio preserved, transparent pad).
-CANVAS = 512
 
 
 def run(cmd: list[str]) -> None:
@@ -81,39 +79,20 @@ def run(cmd: list[str]) -> None:
     subprocess.run([sys.executable, "-m", "facekit.cli", *cmd[1:]], check=True, capture_output=True, text=True)
 
 
-def make_average_face(williams_dir: Path, tmp: Path) -> None:
-    """Run ``facekit average-face`` on the Williams cohort ONLY."""
+def run_average_face(williams_dir: Path, tmp: Path) -> Path:
+    """Run ``facekit average-face`` on the Williams cohort ONLY; return the PNG."""
     cohorts = tmp / "cohorts"
     cohorts.mkdir()
     (cohorts / "Williams_syndrome").symlink_to(williams_dir)
     out = tmp / "avg_out"
     run(["facekit", "average-face", "-i", str(cohorts), "-o", str(out)])
-    produced = next(out.rglob("Williams_syndrome*avg*.png"))
-    shutil.copy(produced, FIGURES / "average-face.png")
-
-
-def make_extract_landmarks(crouzon_image: Path, tmp: Path) -> None:
-    """Run ``facekit extract-landmarks --visualize`` on the Crouzon face."""
-    demo = tmp / "images" / "demo"
-    demo.mkdir(parents=True)
-    staged = demo / crouzon_image.name
-    shutil.copy(crouzon_image, staged)
-    out = tmp / "lm_out"
-    # --visualize is incompatible with --format jsonl, so use --format json.
-    run([
-        "facekit", "extract-landmarks", "-i", str(tmp / "images"),
-        "-o", str(out), "--visualize", "--visualize-style", "mesh",
-        "--format", "json",
-    ])
-    vis = out / "demo" / f"{staged.stem}_vis.png"
-    shutil.copy(vis, FIGURES / "extract-landmarks.png")
+    return next(out.rglob("Williams_syndrome*avg*.png"))
 
 
 def detect_landmarks(image_path: Path, model_path: Path | None):
     """Return (rgb_image, landmarks_px (N, 2)) via MediaPipe Face Landmarker.
 
-    Mirrors the detect step of mm_fusion_top50/scripts/plot_ipd_face_overlay.py;
-    resolves the model through facekit's ``ensure_model`` (auto-download)."""
+    Resolves the model through facekit's ``ensure_model`` (auto-download)."""
     from facekit.core.morph.landmarks import ensure_model
     import mediapipe as mp
     from mediapipe.tasks import python as mp_python
@@ -125,54 +104,69 @@ def detect_landmarks(image_path: Path, model_path: Path | None):
     detector = mp_vision.FaceLandmarker.create_from_options(opts)
     image = mp.Image.create_from_file(str(image_path))
     res = detector.detect(image)
+    detector.close()  # explicit close avoids MediaPipe's teardown error at interpreter exit
     if not res.face_landmarks:
         raise RuntimeError(f"No face detected in {image_path}")
-    rgb = image.numpy_view()
+    rgb = image.numpy_view()[:, :, :3]
     h, w = rgb.shape[:2]
     lm = np.array([[p.x * w, p.y * h] for p in res.face_landmarks[0]], dtype=np.float64)
     return rgb, lm
 
 
-def make_extract_features(crouzon_image: Path, model_path: Path | None) -> None:
-    """Overlay the four facekit feature segments on the Crouzon face."""
-    rgb, lm = detect_landmarks(crouzon_image, model_path)
+def square_crop(rgb: np.ndarray, lm: np.ndarray, margin: float = 0.12):
+    """Square crop around the landmark box, widened by ``margin`` per side.
+    Returns (crop, landmarks shifted into crop coordinates)."""
     h, w = rgb.shape[:2]
+    x0, y0 = lm.min(axis=0)
+    x1, y1 = lm.max(axis=0)
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    side = max(x1 - x0, y1 - y0) * (1 + 2 * margin)
+    left, top = int(round(cx - side / 2)), int(round(cy - side / 2))
+    side = int(round(side))
+    pad = max(0, -left, -top, left + side - w, top + side - h)
+    if pad:
+        rgb = np.pad(rgb, ((pad, pad), (pad, pad), (0, 0)), mode="edge")
+        left, top = left + pad, top + pad
+    crop = rgb[top:top + side, left:left + side]
+    return crop, lm + pad - np.array([left, top])
 
-    # Tight crop around all landmarks (same idea as the reference script).
-    x_min, y_min = lm.min(axis=0)
-    x_max, y_max = lm.max(axis=0)
-    x0, y0 = max(0, int(x_min)), max(0, int(y_min))
-    x1, y1 = min(w, int(x_max)), min(h, int(y_max))
-    crop = rgb[y0:y1, x0:x1]
-    off = np.array([x0, y0])
 
+def make_phenotyping(crouzon_image: Path, williams_dir: Path, model_path: Path | None, tmp: Path) -> None:
+    """Three identically framed panels: landmarks, measurements, average face."""
+    rgb, lm = detect_landmarks(crouzon_image, model_path)
+    crop, lm_c = square_crop(rgb, lm)
+    avg_png = run_average_face(williams_dir, tmp)
+    avg_rgb, avg_lm = detect_landmarks(avg_png, model_path)
+    avg_crop, _ = square_crop(avg_rgb, avg_lm)
+
+    fig, axes = plt.subplots(1, 3, figsize=(9.6, 3.6), dpi=DPI)
+    for ax in axes:
+        ax.set_xticks([]); ax.set_yticks([])
+        for sp in ax.spines.values():
+            sp.set_visible(False)
+
+    axes[0].imshow(crop)
+    axes[0].scatter(lm_c[:, 0], lm_c[:, 1], s=2.2, color="#1f77b4", alpha=0.9, linewidths=0)
+    axes[0].set_title("extract-landmarks: 478 points", fontsize=8.5)
+
+    axes[1].imshow(crop)
     bz = np.linalg.norm(lm[BIZYG[0]] - lm[BIZYG[1]])
-
-    ch, cw = crop.shape[:2]
-    fig, ax = plt.subplots(figsize=(3.8, 3.8 * ch / cw), dpi=DPI)
-    ax.imshow(crop)
-
     handles = []
     for name, a, b, color in FEATURES:
-        pa, pb = lm[a] - off, lm[b] - off
-        ax.plot([pa[0], pb[0]], [pa[1], pb[1]], color=color, lw=2.2,
-                solid_capstyle="round", zorder=4)
-        ax.scatter([pa[0], pb[0]], [pa[1], pb[1]], s=20, color=color,
-                   edgecolors="white", linewidths=0.7, zorder=5)
+        pa, pb = lm_c[a], lm_c[b]
+        axes[1].plot([pa[0], pb[0]], [pa[1], pb[1]], color=color, lw=2.0, solid_capstyle="round", zorder=4)
+        axes[1].scatter([pa[0], pb[0]], [pa[1], pb[1]], s=16, color=color, edgecolors="white", linewidths=0.6, zorder=5)
         val = np.linalg.norm(lm[a] - lm[b]) / bz
-        handles.append(Line2D([0], [0], color=color, lw=2.2,
-                              label=f"{name}  ({val:.2f})"))
+        handles.append(Line2D([0], [0], color=color, lw=2.0, label=f"{name.replace('_', ' ')}  {val:.2f}"))
+    axes[1].legend(handles=handles, loc="lower center", fontsize=6.2, framealpha=0.92,
+                   handlelength=1.2, borderpad=0.4, labelspacing=0.3, edgecolor="#999999", ncol=1)
+    axes[1].set_title("extract-features: 4 of 120 measurements", fontsize=8.5)
 
-    ax.legend(handles=handles, loc="upper left", fontsize=6.5,
-              framealpha=0.92, handlelength=1.3, borderpad=0.5,
-              labelspacing=0.4, edgecolor="#888888")
+    axes[2].imshow(avg_crop)
+    axes[2].set_title("average-face: Williams syndrome (n=257)", fontsize=8.5)
 
-    ax.set_xticks([])
-    ax.set_yticks([])
-    for s in ax.spines.values():
-        s.set_visible(False)
-    fig.tight_layout(pad=0.1)
-    fig.savefig(FIGURES / "extract-features.png", bbox_inches="tight", pad_inches=0.05)
+    fig.tight_layout(pad=0.4)
+    fig.savefig(FIGURES / "phenotyping.png", bbox_inches="tight", pad_inches=0.05)
     plt.close(fig)
 
 
@@ -214,8 +208,6 @@ def make_enhance(crouzon_image: Path, tmp: Path) -> None:
 
 MANUSCRIPT_PANELS = {
     "manuscript/image/posecorr_geom-1.pdf": "pose-correction.png",
-    "manuscript/image/privacy_c_far_identity.pdf": "privacy-identity.png",
-    "manuscript/image/privacy_d_far_lpips.pdf": "privacy-lpips.png",
 }
 
 
@@ -226,23 +218,6 @@ def make_manuscript_panels(dpi: int = 220) -> None:
     for src, dst in MANUSCRIPT_PANELS.items():
         page = pymupdf.open(ROOT / src)[0]
         page.get_pixmap(dpi=dpi, alpha=False).save(FIGURES / dst)
-
-
-def normalize_figures() -> None:
-    """Resize every figure to a uniform CANVAS x CANVAS box (aspect preserved,
-    centered on a transparent square) so they look consistent in the README."""
-    from PIL import Image
-
-    for name in ("average-face", "extract-landmarks", "extract-features"):
-        path = FIGURES / f"{name}.png"
-        im = Image.open(path).convert("RGBA")
-        w, h = im.size
-        scale = CANVAS / max(w, h)
-        nw, nh = round(w * scale), round(h * scale)
-        im = im.resize((nw, nh), Image.LANCZOS)
-        canvas = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-        canvas.paste(im, ((CANVAS - nw) // 2, (CANVAS - nh) // 2), im)
-        canvas.save(path)
 
 
 def main() -> None:
@@ -267,10 +242,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmp_str:
         tmp = Path(tmp_str)
         if "phenotyping" in only:
-            make_average_face(args.williams_dir, tmp)
-            make_extract_landmarks(args.crouzon_image, tmp)
-            make_extract_features(args.crouzon_image, args.model_path)
-            normalize_figures()
+            make_phenotyping(args.crouzon_image, args.williams_dir, args.model_path, tmp)
         if "enhance" in only:
             make_enhance(args.crouzon_image, tmp)
     if "panels" in only:

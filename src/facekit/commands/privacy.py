@@ -1,7 +1,7 @@
 """
 FaceKit CLI command: privacy
 
-Audit synthetic faces for residual similarity to the real photographs that
+Analyse synthetic faces for residual similarity to the real photographs that
 trained the generator, along two separate axes:
 
   identity   -- recognition embeddings (ArcFace by default; AdaFace and LVFace
@@ -84,7 +84,7 @@ def privacy(
                                 help="CPU threads for onnxruntime and torch (shared nodes)."),
     seed: int = typer.Option(0, "--seed", min=0, help="Seed for subsampling and bootstrap."),
 ):
-    """Audit synthetic faces for identity and appearance leakage from training images."""
+    """Analyse synthetic faces for identity and appearance leakage from the training images."""
     try:
         pcts = sorted({int(p) for p in percentiles.split(",") if p.strip()})
     except ValueError:
