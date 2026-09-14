@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Rare disease facial phenotype analysis toolkit"
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Tomorrow", email = "you@upenn.edu" }]
+authors = [{ name = "Hongzhuo Chen", email = "193173382+HongzhuoChen@users.noreply.github.com" }]
 
 # Core dependencies (shared by all modules)
 dependencies = [
