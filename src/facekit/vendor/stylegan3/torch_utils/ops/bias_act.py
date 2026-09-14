@@ -9,6 +9,7 @@
 """Custom PyTorch ops for efficient bias and activation."""
 
 import os
+import warnings
 import numpy as np
 import torch
 import dnnlib
@@ -35,17 +36,24 @@ activation_funcs = {
 _plugin = None
 _null_tensor = torch.empty([0])
 
+_plugin_failed = False  # FaceKit modification
+
 def _init():
-    global _plugin
-    if _plugin is None:
-        _plugin = custom_ops.get_plugin(
+    global _plugin, _plugin_failed
+    if _plugin is None and not _plugin_failed:
+        try:
+            _plugin = custom_ops.get_plugin(
             module_name='bias_act_plugin',
             sources=['bias_act.cpp', 'bias_act.cu'],
             headers=['bias_act.h'],
             source_dir=os.path.dirname(__file__),
             extra_cuda_cflags=['--use_fast_math', '--allow-unsupported-compiler'],
-        )
-    return True
+            )
+        except Exception as e:  # FaceKit modification: fall back to the reference implementation
+            _plugin_failed = True
+            warnings.warn(f'bias_act_plugin could not be built ({type(e).__name__}: {e}); '
+                          'falling back to the slow reference implementation.')
+    return _plugin is not None
 
 #----------------------------------------------------------------------------
 
