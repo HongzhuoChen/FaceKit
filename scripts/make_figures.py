@@ -19,12 +19,23 @@ Produces (one per illustrated command):
     figures/average-face.png      ``facekit average-face`` over the Williams cohort
     figures/extract-landmarks.png ``facekit extract-landmarks`` mesh on a Crouzon face
     figures/extract-features.png  four geometric measurement overlays on that face
+    figures/enhance.png           ``facekit enhance`` before/after on that face
+                                  (grayscale -> DDColor; 80 px -> GFPGAN); needs
+                                  ``facekit[enhance]``
+
+With ``--panels`` it also rasterizes four manuscript figures (needs pymupdf):
+    figures/pose-correction.png   manuscript/image/posecorr_geom-1.pdf
+    figures/privacy-identity.png  manuscript/image/privacy_c_far_identity.pdf
+    figures/privacy-lpips.png     manuscript/image/privacy_d_far_lpips.pdf
+
+``--only enhance`` / ``--only panels`` skip the GMDB-dependent figures.
 """
 from __future__ import annotations
 
 import argparse
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -65,7 +76,9 @@ CANVAS = 512
 
 
 def run(cmd: list[str]) -> None:
-    subprocess.run(cmd, check=True, capture_output=True, text=True)
+    """Run a facekit command with the interpreter running this script."""
+    assert cmd[0] == "facekit"
+    subprocess.run([sys.executable, "-m", "facekit.cli", *cmd[1:]], check=True, capture_output=True, text=True)
 
 
 def make_average_face(williams_dir: Path, tmp: Path) -> None:
@@ -163,6 +176,58 @@ def make_extract_features(crouzon_image: Path, model_path: Path | None) -> None:
     plt.close(fig)
 
 
+def make_enhance(crouzon_image: Path, tmp: Path) -> None:
+    """Before/after panel for ``facekit enhance``: a grayscale copy of the face
+    is colorized, an 80-px copy is restored and upscaled 2x."""
+    import cv2
+
+    src = cv2.imread(str(crouzon_image))
+    inp = tmp / "enh_in"
+    inp.mkdir()
+    gray = cv2.cvtColor(cv2.cvtColor(src, cv2.COLOR_BGR2GRAY), cv2.COLOR_GRAY2BGR)
+    cv2.imwrite(str(inp / "grayscale.png"), gray)
+    h, w = src.shape[:2]
+    s = 80 / max(h, w)
+    small = cv2.resize(src, (int(w * s), int(h * s)), interpolation=cv2.INTER_AREA)
+    cv2.imwrite(str(inp / "low_resolution.png"), small)
+    out = tmp / "enh_out"
+    run(["facekit", "enhance", "-i", str(inp), "-o", str(out), "--device", "cpu"])
+
+    panels = [
+        (gray, "input: grayscale"),
+        (cv2.imread(str(out / "grayscale.png")), "DDColor colorized"),
+        (cv2.resize(small, (small.shape[1] * 2, small.shape[0] * 2), interpolation=cv2.INTER_NEAREST),
+         f"input: {small.shape[1]} px face (shown 2x)"),
+        (cv2.imread(str(out / "low_resolution.png")), "GFPGAN restored (2x)"),
+    ]
+    fig, axes = plt.subplots(2, 2, figsize=(5.2, 5.6), dpi=DPI)
+    for ax, (img, title) in zip(axes.ravel(), panels):
+        ax.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        ax.set_title(title, fontsize=8)
+        ax.set_xticks([]); ax.set_yticks([])
+        for sp in ax.spines.values():
+            sp.set_visible(False)
+    fig.tight_layout(pad=0.4)
+    fig.savefig(FIGURES / "enhance.png", bbox_inches="tight", pad_inches=0.05)
+    plt.close(fig)
+
+
+MANUSCRIPT_PANELS = {
+    "manuscript/image/posecorr_geom-1.pdf": "pose-correction.png",
+    "manuscript/image/privacy_c_far_identity.pdf": "privacy-identity.png",
+    "manuscript/image/privacy_d_far_lpips.pdf": "privacy-lpips.png",
+}
+
+
+def make_manuscript_panels(dpi: int = 220) -> None:
+    """Rasterize manuscript PDF panels that the README reuses (pymupdf)."""
+    import pymupdf
+
+    for src, dst in MANUSCRIPT_PANELS.items():
+        page = pymupdf.open(ROOT / src)[0]
+        page.get_pixmap(dpi=dpi, alpha=False).save(FIGURES / dst)
+
+
 def normalize_figures() -> None:
     """Resize every figure to a uniform CANVAS x CANVAS box (aspect preserved,
     centered on a transparent square) so they look consistent in the README."""
@@ -186,21 +251,31 @@ def main() -> None:
     p.add_argument("--williams-dir", type=Path, default=DEFAULT_WILLIAMS)
     p.add_argument("--model-path", type=Path, default=None,
                    help="MediaPipe face_landmarker.task (auto-downloaded if absent).")
+    p.add_argument("--panels", action="store_true",
+                   help="Also rasterize the manuscript PDF panels (needs pymupdf).")
+    p.add_argument("--only", default=None,
+                   help="Comma-separated subset of: phenotyping, enhance, panels.")
     args = p.parse_args()
+    only = set(args.only.split(",")) if args.only else {"phenotyping", "enhance"} | ({"panels"} if args.panels else set())
 
     FIGURES.mkdir(exist_ok=True)
-    for path in (args.crouzon_image, args.williams_dir):
-        if not path.exists():
-            raise SystemExit(f"missing source asset: {path}")
+    if only & {"phenotyping", "enhance"}:
+        for path in (args.crouzon_image, args.williams_dir):
+            if not path.exists():
+                raise SystemExit(f"missing source asset: {path}")
 
     with tempfile.TemporaryDirectory() as tmp_str:
         tmp = Path(tmp_str)
-        make_average_face(args.williams_dir, tmp)
-        make_extract_landmarks(args.crouzon_image, tmp)
-    make_extract_features(args.crouzon_image, args.model_path)
-
-    normalize_figures()
-    print("wrote 3 figures to", FIGURES)
+        if "phenotyping" in only:
+            make_average_face(args.williams_dir, tmp)
+            make_extract_landmarks(args.crouzon_image, tmp)
+            make_extract_features(args.crouzon_image, args.model_path)
+            normalize_figures()
+        if "enhance" in only:
+            make_enhance(args.crouzon_image, tmp)
+    if "panels" in only:
+        make_manuscript_panels()
+    print("wrote figures for", sorted(only), "to", FIGURES)
 
 
 if __name__ == "__main__":
