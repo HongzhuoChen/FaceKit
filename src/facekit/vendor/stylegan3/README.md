@@ -31,6 +31,11 @@ Local modifications (keep this list current):
    extensions in `sys.modules`, so the original failed with
    `ModuleNotFoundError: No module named 'bias_act_plugin'` right after a
    successful compile.
+5. `train.py`: Adam `betas=[0.0, 0.99]` instead of `[0, 0.99]`; recent PyTorch
+   rejects a mixed int/float pair.
+6. `torch_utils/ops/{bias_act,upfirdn2d,filtered_lrelu}.py`: `_init()` catches
+   a failed plugin build, warns once, and returns False so the op falls back to
+   its reference implementation (as StyleGAN2-ADA did) instead of aborting.
 
 The modules must stay importable under their original top-level names
 (`dnnlib`, `torch_utils`, ...) because trained network pickles refer to them

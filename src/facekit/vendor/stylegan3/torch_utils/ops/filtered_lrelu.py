@@ -20,17 +20,24 @@ from . import bias_act
 
 _plugin = None
 
+_plugin_failed = False  # FaceKit modification
+
 def _init():
-    global _plugin
-    if _plugin is None:
-        _plugin = custom_ops.get_plugin(
+    global _plugin, _plugin_failed
+    if _plugin is None and not _plugin_failed:
+        try:
+            _plugin = custom_ops.get_plugin(
             module_name='filtered_lrelu_plugin',
             sources=['filtered_lrelu.cpp', 'filtered_lrelu_wr.cu', 'filtered_lrelu_rd.cu', 'filtered_lrelu_ns.cu'],
             headers=['filtered_lrelu.h', 'filtered_lrelu.cu'],
             source_dir=os.path.dirname(__file__),
             extra_cuda_cflags=['--use_fast_math', '--allow-unsupported-compiler'],
-        )
-    return True
+            )
+        except Exception as e:  # FaceKit modification: fall back to the reference implementation
+            _plugin_failed = True
+            warnings.warn(f'filtered_lrelu_plugin could not be built ({type(e).__name__}: {e}); '
+                          'falling back to the slow reference implementation.')
+    return _plugin is not None
 
 def _get_filter_size(f):
     if f is None:

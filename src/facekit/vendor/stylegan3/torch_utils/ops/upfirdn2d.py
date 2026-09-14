@@ -9,6 +9,7 @@
 """Custom PyTorch ops for efficient resampling of 2D images."""
 
 import os
+import warnings
 import numpy as np
 import torch
 
@@ -20,17 +21,24 @@ from . import conv2d_gradfix
 
 _plugin = None
 
+_plugin_failed = False  # FaceKit modification
+
 def _init():
-    global _plugin
-    if _plugin is None:
-        _plugin = custom_ops.get_plugin(
+    global _plugin, _plugin_failed
+    if _plugin is None and not _plugin_failed:
+        try:
+            _plugin = custom_ops.get_plugin(
             module_name='upfirdn2d_plugin',
             sources=['upfirdn2d.cpp', 'upfirdn2d.cu'],
             headers=['upfirdn2d.h'],
             source_dir=os.path.dirname(__file__),
             extra_cuda_cflags=['--use_fast_math', '--allow-unsupported-compiler'],
-        )
-    return True
+            )
+        except Exception as e:  # FaceKit modification: fall back to the reference implementation
+            _plugin_failed = True
+            warnings.warn(f'upfirdn2d_plugin could not be built ({type(e).__name__}: {e}); '
+                          'falling back to the slow reference implementation.')
+    return _plugin is not None
 
 def _parse_scaling(scaling):
     if isinstance(scaling, int):
