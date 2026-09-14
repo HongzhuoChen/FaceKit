@@ -6,26 +6,6 @@ geometric measurements and z-scores against a normative reference; trains
 cohort-specific StyleGAN3 generators for synthetic faces; and audits those
 synthetic faces for identity and appearance leakage before they are shared.
 
-```mermaid
-flowchart LR
-    subgraph P[Phenotyping]
-        direction LR
-        A[images] --> L[extract-landmarks] --> F[extract-features] --> S[score]
-        A --> AF[average-face]
-    end
-    subgraph G[Synthetic faces]
-        direction LR
-        R[raw photographs] --> E[enhance] --> K[pack] --> T[train] --> GN[generate]
-    end
-    subgraph V[Privacy audit]
-        direction LR
-        PR[privacy]
-    end
-    GN -->|synthetic| PR
-    K -->|train / held-out| PR
-    GN -.->|same measurements| F
-```
-
 Example faces on this page are derived from the [GestaltMatcher Database
 (GMDB)](https://db.gestaltmatcher.org) and are shown with consent.
 
