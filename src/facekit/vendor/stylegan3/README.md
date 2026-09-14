@@ -22,6 +22,9 @@ Local modifications (keep this list current):
    the images seen so far and `T = total_kimg`, updated every batch. This is
    the schedule the manuscript's generators were trained with; `facekit train`
    turns it on by default. Every edit is marked `FaceKit modification`.
+3. `torch_utils/misc.py`: `InfiniteSampler.__init__` calls
+   `super().__init__()` without the dataset; `torch.utils.data.Sampler` stopped
+   accepting a `data_source` argument in PyTorch 2.2.
 
 The modules must stay importable under their original top-level names
 (`dnnlib`, `torch_utils`, ...) because trained network pickles refer to them
