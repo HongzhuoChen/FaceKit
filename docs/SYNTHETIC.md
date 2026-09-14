@@ -24,7 +24,7 @@ synthetic/<cohort>/seedNNNN.png
 
 Split the patients of each cohort into a training and a held-out partition
 **before** `pack`, and pack only the training partition. The held-out crops
-are what `facekit privacy` compares against later; without them the audit
+are what `facekit privacy` compares against later; without them the analysis
 has no calibration set.
 
 ## `enhance`

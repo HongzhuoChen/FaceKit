@@ -1,4 +1,4 @@
-# Privacy audit: `facekit privacy`
+# Privacy analysis: `facekit privacy`
 
 `privacy` checks whether the faces sampled from a generator carry residual
 information about the real photographs that trained it. It is the toolkit
@@ -24,7 +24,7 @@ would make held-out images look like training images and shift every
 threshold. FaceKit cannot check this, since it knows nothing about patients.
 
 Use the crops written by `facekit pack` for the two real partitions, so that
-real and synthetic images share one framing. The audit compares images by
+real and synthetic images share one framing. The analysis compares images by
 nearest-neighbour distance, and a systematic framing difference between
 partitions shows up as distance.
 
@@ -45,7 +45,7 @@ counted in `privacy_results.json`.
 image, the distance to the nearest training image *of the same cohort* is
 computed. The threshold at percentile $p$ is the $p$-th percentile of the
 held-out distances, pooled over cohorts, so the held-out flagging rate is $p$
-by construction (the audit's built-in check) and the synthetic rate is the
+by construction (the analysis's built-in check) and the synthetic rate is the
 quantity of interest. A synthetic rate at or below $p$ means a sample from
 the generator is no more likely to land close to a training patient than
 another real photograph of the same syndrome is. Percentiles default to
@@ -55,7 +55,7 @@ another real photograph of the same syndrome is. Percentiles default to
 $\mathrm{AA}(A,B)$ is the fraction of points whose nearest neighbour within
 their own set is closer than their nearest neighbour in the other set,
 averaged over both directions; 0.5 means the sets cannot be told apart by
-proximity. The audit reports $\mathrm{AA}(\text{train},\text{synthetic})$,
+proximity. The analysis reports $\mathrm{AA}(\text{train},\text{synthetic})$,
 $\mathrm{AA}(\text{held-out},\text{synthetic})$ and their difference, the
 **privacy loss**
 $\mathrm{AA}(\text{held-out},\text{synth}) - \mathrm{AA}(\text{train},\text{synth})$.
@@ -93,7 +93,7 @@ acquisition style of the training set (colour cast, framing, background),
 which the generator learns along with facial morphology. The identity axis is
 the one that speaks to re-identification.
 
-The audit is empirical: it bounds what these particular models and this
+The analysis is empirical: it bounds what these particular models and this
 metric can detect. A stronger attack or a better embedding could in
 principle detect more.
 

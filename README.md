@@ -3,7 +3,7 @@
 A lightweight toolkit for interpretable facial phenotyping in rare genetic
 diseases. FaceKit turns frontal photographs into standardized, pose-corrected
 geometric measurements and z-scores against a normative reference; trains
-cohort-specific StyleGAN3 generators for synthetic faces; and audits those
+cohort-specific StyleGAN3 generators for synthetic faces; and analyses those
 synthetic faces for identity and appearance leakage before they are shared.
 
 Example faces on this page are derived from the [GestaltMatcher Database
@@ -48,7 +48,7 @@ facekit train    --data datasets/noonan.zip -o runs/noonan --gpus 1 --batch 32 -
 facekit generate --network runs/noonan/00000-*/network-snapshot-005000.pkl \
                  -o synthetic/ --name noonan --n 500
 
-# Privacy audit of the generator against a patient-disjoint held-out partition
+# Privacy analysis of the generator against a patient-disjoint held-out partition
 facekit privacy --train datasets/train --heldout prepared/heldout \
                 --synthetic synthetic/ -o privacy/
 ```
@@ -71,19 +71,15 @@ structure, so the result of one command is the input of the next.
 | | `pack` | Crop each face to a fixed square from its landmarks and pack a cohort into a StyleGAN3 dataset zip. |
 | | `train` | Train a StyleGAN3 generator with the settings used for the FaceKit generators. |
 | | `generate` | Sample faces from a generator pickle into the cohort folder layout. |
-| Privacy | `privacy` | Identity (ArcFace, AdaFace, LVFace) and appearance (LPIPS) leakage audit of synthetic faces against the training images. |
+| Privacy | `privacy` | Identity (ArcFace, AdaFace, LVFace) and appearance (LPIPS) leakage analysis of synthetic faces against the training images. |
 
 ## Phenotyping
 
 ### Landmarks and measurements
 
-<p>
-<img src="figures/extract-landmarks.png" width="31%" alt="478-point mesh">
-<img src="figures/extract-features.png" width="31%" alt="four measurements">
-<img src="figures/average-face.png" width="31%" alt="average face">
-</p>
+<img src="figures/phenotyping.png" width="100%" alt="landmarks, measurements, average face">
 
-Left to right: the 478-point MediaPipe mesh on a face with Crouzon syndrome;
+Left to right: the 478 MediaPipe landmarks on a face with Crouzon syndrome;
 four of the 120 measurements drawn on the same face (inter-pupillary,
 inter-canthal, nasal base and mouth width, each normalized by bizygomatic
 width); the average face of the GMDB Williams syndrome cohort from
@@ -192,35 +188,42 @@ others agree in direction for most measurement pairs, but the synthetic
 cohorts are consistently **narrower** than the real ones (variance ratio
 below one in every facial region).
 
-## Privacy audit
-
-<p>
-<img src="figures/privacy-identity.png" width="48%" alt="identity flagging">
-<img src="figures/privacy-lpips.png" width="48%" alt="LPIPS flagging">
-</p>
+## Privacy analysis
 
 Because a generator is trained on real patients, `privacy` asks two separate
 questions before its output is shared: does a synthetic face reproduce the
 **identity** of a training patient (recognition embeddings: ArcFace by
 default, AdaFace and LVFace when their model files are given), and does it
-reproduce the **appearance** of a training photograph (LPIPS)? Every
-synthetic and every held-out real image is characterized by its distance to
-the nearest training image of the same cohort. The threshold at percentile
-$p$ is the $p$-th percentile of the held-out distances, so held-out images
-are flagged at rate $p$ by construction and the synthetic rate is the
-quantity of interest. Nearest-neighbour adversarial accuracy summarizes each
-axis: a privacy loss near zero means the synthetic images lie no closer to
-the training partition than held-out real images do.
+reproduce the **appearance** of a training photograph (LPIPS)?
 
-The figure shows the manuscript's result for the ten GMDB generators. On the
-identity axis (left) synthetic images were flagged below the held-out rate
-for all three recognition models at every operating point. On the appearance
-axis (right) they were flagged well above it: the generators reproduce the
-acquisition characteristics of their training photographs, not the identity
-of any individual. This is an empirical audit against specific models, not a
-formal privacy guarantee. Outputs are `flagging.csv`, `nnaa.csv`,
-`privacy_results.json` and two plots; see
-[`docs/PRIVACY.md`](docs/PRIVACY.md).
+```bash
+facekit privacy --train train/ --heldout heldout/ --synthetic synthetic/ -o privacy/ \
+    [--backbone arcface --backbone lvface --lvface-onnx LVFace-L.onnx] [--no-lpips]
+```
+
+The three roots share cohort subfolder names; the held-out partition holds
+real images of the same cohorts that never entered training and must be
+disjoint from the training partition at the patient level. Every synthetic
+and every held-out image is characterized by its distance to the nearest
+training image of its cohort. The threshold at percentile $p$ is the $p$-th
+percentile of the held-out distances, so held-out images are flagged at rate
+$p$ by construction and the synthetic rate is the quantity to read: at or
+below $p$ means a sample from the generator is no more likely to land close
+to a training patient than another real photograph of the same syndrome is.
+Nearest-neighbour adversarial accuracy and its privacy loss,
+$\mathrm{AA}(\text{held-out},\text{synthetic}) - \mathrm{AA}(\text{train},\text{synthetic})$,
+summarize each axis with bootstrap intervals; a privacy loss near zero means
+the synthetic images lie no closer to the training partition than held-out
+real images do.
+
+Outputs are `flagging.csv` (rate below threshold per metric and percentile),
+`nnaa.csv` (adversarial accuracies and privacy loss with intervals),
+`privacy_results.json` and two plots; embeddings and distances are cached so
+a re-run with other percentiles is free. The definitions, the output
+schemas and how the manuscript's result reads are in
+[`docs/PRIVACY.md`](docs/PRIVACY.md). The analysis is empirical, against
+specific recognition models and one perceptual metric; it is not a formal
+privacy guarantee.
 
 ## Data
 
@@ -233,7 +236,7 @@ formal privacy guarantee. Outputs are `flagging.csv`, `nnaa.csv`,
   the package. Rebuild it with `scripts/build_reference.py`.
 - **Synthetic faces.** Browse and download at the
   [PDIDB](http://pdidb-dev.wglab.org/).
-- **Held-out partitions for the privacy audit** must be disjoint from the
+- **Held-out partitions for the privacy analysis** must be disjoint from the
   training partition at the patient level; FaceKit does not check this.
 
 ## Roadmap
@@ -260,18 +263,10 @@ src/facekit/
     ├── stylegan3/        # NVIDIA StyleGAN3 (+ PyTorch 2.x fixes and --lr-schedule)
     ├── ddcolor/          # DDColor model (Apache-2.0)
     └── gfpgan/           # GFPGAN v1 clean architecture (Apache-2.0)
-docs/                     # worked example, output formats, feature glossary, synthetic, privacy
+docs/                     # worked example, output formats, feature glossary, synthetic faces, privacy analysis
 scripts/                  # figure generation, reference building, MONDO download
 tests/                    # pytest suite, including a CPU StyleGAN3 compatibility test
 ```
-
-## Citation
-
-If you use FaceKit, please cite:
-
-> Chen H, Wang Z, Pollet F, Gürsoy G, Wang K. FaceKit: a lightweight toolkit
-> for interpretable facial phenotyping in rare diseases. Manuscript in
-> preparation, 2026.
 
 ## Acknowledgements
 
@@ -287,7 +282,7 @@ average faces,
 [AdaFace](https://github.com/mk-minchul/AdaFace),
 [LVFace](https://huggingface.co/bytedance-research/LVFace) and
 [LPIPS](https://github.com/richzhang/PerceptualSimilarity) for the privacy
-audit, and [oaklib](https://github.com/INCATools/ontology-access-kit) for
+analysis, and [oaklib](https://github.com/INCATools/ontology-access-kit) for
 HPO/MONDO resolution. The normative reference is derived from
 [FairFace](https://github.com/joojs/fairface); the patient cohorts come from
 the [GestaltMatcher Database](https://db.gestaltmatcher.org).
