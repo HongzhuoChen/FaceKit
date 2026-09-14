@@ -41,6 +41,15 @@ def test_lr_factor():
         lr_factor("linear", 0, 1)
 
 
+def test_infinite_sampler_constructs_on_current_torch():
+    ensure_stylegan3_on_path()
+    from torch_utils import misc  # vendored
+
+    sampler = misc.InfiniteSampler(dataset=list(range(5)), rank=0, num_replicas=1, seed=0)
+    it = iter(sampler)
+    assert {next(it) for _ in range(50)} == set(range(5))
+
+
 def test_dry_run_resolves_facekit_defaults(tiny_zip, tmp_path):
     r = CliRunner().invoke(app, [
         "train", "--data", str(tiny_zip), "-o", str(tmp_path / "runs"),
