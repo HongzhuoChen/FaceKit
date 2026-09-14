@@ -25,6 +25,12 @@ Local modifications (keep this list current):
 3. `torch_utils/misc.py`: `InfiniteSampler.__init__` calls
    `super().__init__()` without the dataset; `torch.utils.data.Sampler` stopped
    accepting a `data_source` argument in PyTorch 2.2.
+4. `torch_utils/custom_ops.py`: `get_plugin` keeps the module returned by
+   `torch.utils.cpp_extension.load()` instead of re-importing it with
+   `importlib.import_module`; PyTorch 2.x no longer registers JIT-built
+   extensions in `sys.modules`, so the original failed with
+   `ModuleNotFoundError: No module named 'bias_act_plugin'` right after a
+   successful compile.
 
 The modules must stay importable under their original top-level names
 (`dnnlib`, `torch_utils`, ...) because trained network pickles refer to them
