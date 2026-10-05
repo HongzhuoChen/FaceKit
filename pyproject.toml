@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "facekit"
+version = "0.1.0"
+description = "Rare disease facial phenotype analysis toolkit"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Hongzhuo Chen", email = "193173382+HongzhuoChen@users.noreply.github.com" }]
+
+# Core dependencies (shared by all modules)
+dependencies = [
+    "typer>=0.12",
+    "numpy>=2.0,<3",
+    "opencv-contrib-python>=4.10",
+    "pillow>=10",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+# Module: landmarks + average face
+morph = [
+    "mediapipe>=0.10.30",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+]
+
+# Module: geometric phenotype features (extract-features)
+geometric = [
+    "mediapipe>=0.10.30",
+    "oaklib>=0.5",
+    "pandas>=2.0",
+]
+
+# Module: synthetic face generation (generate; later pack / train).
+# Vendored StyleGAN3 under src/facekit/vendor/stylegan3 (NVIDIA license, non-commercial).
+synth = [
+    "torch>=2.0",
+    "packaging",
+    "scipy>=1.10",
+    "click>=8.0",
+    "requests",
+    "imageio",
+    "psutil",
+    "ninja",
+]
+
+# Module: image preparation (enhance): DDColor colorization + GFPGAN restoration.
+# Both networks are vendored under src/facekit/vendor (Apache-2.0); facexlib
+# supplies face detection/alignment for GFPGAN.
+enhance = [
+    "torch>=2.0",
+    "torchvision",
+    "facexlib>=0.3",
+    "huggingface_hub",
+    "mediapipe>=0.10.30",
+]
+
+# Module: privacy audit of synthetic images (privacy)
+privacy = [
+    "torch>=2.0",
+    "torchvision",
+    "insightface>=0.7",
+    "onnxruntime>=1.14",
+    "lpips>=0.1.4",
+    "scipy>=1.10",
+    "matplotlib>=3.7",
+]
+
+# All modules installed
+all = [
+    "facekit[morph,geometric,synth,enhance,privacy]",
+]
+
+# Developer tools
+dev = [
+    "pytest>=7",
+    "black",
+    "ruff",
+]
+
+# Registers the `facekit` CLI command
+[project.scripts]
+facekit = "facekit.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+facekit = [
+    "data/*.csv",
+    "vendor/stylegan3/LICENSE.txt",
+    "vendor/stylegan3/README.md",
+    "vendor/ddcolor/LICENSE",
+    "vendor/gfpgan/LICENSE",
+    "vendor/stylegan3/torch_utils/ops/*.cu",
+    "vendor/stylegan3/torch_utils/ops/*.cpp",
+    "vendor/stylegan3/torch_utils/ops/*.h",
+]
